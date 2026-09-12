@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사례조사 대시보드</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f5;
+    --panel: #ffffff;
+    --panel-alt: #fbfbfa;
+    --border: #e3e2de;
+    --text: #1f1e1c;
+    --muted: #6b6963;
+    --accent: #3f6d4e;
+    --accent-soft: #e6efe8;
+    --warn-bg: #fdf1dc;
+    --warn-text: #8a5a10;
+    --warn-border: #e9cf9d;
+    --ok-bg: #e6efe8;
+    --ok-text: #2f5c3d;
+    --ok-border: #c3dbc9;
+    --guess-bg: #ecebfa;
+    --guess-text: #4a4590;
+    --guess-border: #cfccec;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    html[data-theme="auto"] {
+      --bg: #191918;
+      --panel: #232322;
+      --panel-alt: #1f1f1e;
+      --border: #353533;
+      --text: #eceae5;
+      --muted: #9a978f;
+      --accent: #8fc3a1;
+      --accent-soft: #24352b;
+      --warn-bg: #3a2e18;
+      --warn-text: #e9c37c;
+      --warn-border: #574526;
+      --ok-bg: #24352b;
+      --ok-text: #9dcfae;
+      --ok-border: #35513f;
+      --guess-bg: #272641;
+      --guess-text: #b4b0ec;
+      --guess-border: #3b3966;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+    }
+  }
+  html[data-theme="dark"] {
+    --bg: #191918; --panel: #232322; --panel-alt: #1f1f1e; --border: #353533;
+    --text: #eceae5; --muted: #9a978f; --accent: #8fc3a1; --accent-soft: #24352b;
+    --warn-bg: #3a2e18; --warn-text: #e9c37c; --warn-border: #574526;
+    --ok-bg: #24352b; --ok-text: #9dcfae; --ok-border: #35513f;
+    --guess-bg: #272641; --guess-text: #b4b0ec; --guess-border: #3b3966;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.25);
+  }
+  html[data-theme="light"] {
+    --bg: #f7f7f5; --panel: #ffffff; --panel-alt: #fbfbfa; --border: #e3e2de;
+    --text: #1f1e1c; --muted: #6b6963; --accent: #3f6d4e; --accent-soft: #e6efe8;
+    --warn-bg: #fdf1dc; --warn-text: #8a5a10; --warn-border: #e9cf9d;
+    --ok-bg: #e6efe8; --ok-text: #2f5c3d; --ok-border: #c3dbc9;
+    --guess-bg: #ecebfa; --guess-text: #4a4590; --guess-border: #cfccec;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
+                 "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  header.top { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between; margin-bottom: 22px; }
+  h1 { font-size: 25px; margin: 0 0 4px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0; }
+  .theme-btn {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 13px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .theme-btn:hover { border-color: var(--accent); }
+
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+  .stat {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 16px; box-shadow: var(--shadow); min-width: 110px;
+  }
+  .stat .n { font-size: 21px; font-weight: 650; line-height: 1.2; }
+  .stat .l { font-size: 12px; color: var(--muted); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 18px; }
+  .tab {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text);
+    border-radius: 999px; padding: 7px 15px; font-size: 13.5px; cursor: pointer; font-family: inherit;
+    transition: background .12s, border-color .12s;
+  }
+  .tab:hover { border-color: var(--accent); }
+  .tab[aria-selected="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .search {
+    flex: 1 1 220px; min-width: 180px; background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13.5px; font-family: inherit;
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .toggle-line { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+
+  .badge {
+    display: inline-block; font-size: 11.5px; font-weight: 600; padding: 2px 8px;
+    border-radius: 999px; border: 1px solid transparent; white-space: nowrap; line-height: 1.6;
+  }
+  .badge.ok { background: var(--ok-bg); color: var(--ok-text); border-color: var(--ok-border); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); }
+  .badge.guess { background: var(--guess-bg); color: var(--guess-text); border-color: var(--guess-border); }
+  .badge.plain { background: var(--panel-alt); color: var(--muted); border-color: var(--border); }
+
+  .view-title { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 30px 0 10px; }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 1000px; font-size: 13px; }
+  th, td { text-align: left; vertical-align: top; padding: 11px 13px; border-bottom: 1px solid var(--border); }
+  thead th { background: var(--panel-alt); font-size: 12px; color: var(--muted); font-weight: 600;
+             position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--panel-alt); }
+  td.name { min-width: 210px; }
+  td.name a { color: var(--text); font-weight: 600; text-decoration: none; }
+  td.name a:hover { color: var(--accent); text-decoration: underline; }
+  td ul { margin: 0; padding-left: 16px; }
+  td li { margin-bottom: 3px; }
+  .cellmuted { color: var(--muted); }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px 17px; box-shadow: var(--shadow); }
+  .card.flagged { border-left: 3px solid var(--warn-border); }
+  .card h3 { font-size: 15.5px; margin: 0 0 7px; line-height: 1.4; }
+  .card h3 a { color: var(--text); text-decoration: none; }
+  .card h3 a:hover { color: var(--accent); }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .card p { margin: 0 0 9px; font-size: 13.5px; }
+  .card dt { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 8px; }
+  .card dd { margin: 1px 0 0; font-size: 13px; }
+  .card .src { font-size: 12px; margin-top: 11px; }
+  .card .src a { color: var(--accent); word-break: break-all; }
+
+  .notelink { background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; }
+  .notelink:hover { color: var(--accent); text-decoration: underline; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50;
+    display: flex; justify-content: center; align-items: flex-start; padding: 4vh 16px;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .overlay[hidden] { display: none; }
+  .sheet {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.3); max-width: 780px; width: 100%;
+    padding: 26px 30px 34px; margin-bottom: 4vh;
+  }
+  .sheet-top { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .sheet h2 { font-size: 20px; margin: 0; line-height: 1.4; letter-spacing: -.01em; }
+  .close-btn {
+    flex: 0 0 auto; background: var(--panel-alt); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; width: 32px; height: 32px; font-size: 17px; line-height: 1; cursor: pointer; font-family: inherit;
+  }
+  .close-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .facts { border: 1px solid var(--border); border-radius: 10px; background: var(--panel-alt); padding: 4px 16px; margin: 14px 0 20px; }
+  .facts dl { display: grid; grid-template-columns: 120px 1fr; gap: 2px 14px; margin: 12px 0; font-size: 13px; }
+  .facts dt { color: var(--muted); font-size: 12px; padding-top: 1px; }
+  .facts dd { margin: 0; }
+  .facts ul { margin: 0; padding-left: 16px; }
+
+  .prose { font-size: 14.5px; }
+  .prose h3 { font-size: 15px; margin: 24px 0 8px; padding-bottom: 5px; border-bottom: 1px solid var(--border); letter-spacing: .01em; }
+  .prose h4 { font-size: 14px; margin: 18px 0 6px; }
+  .prose p { margin: 0 0 11px; }
+  .prose ul, .prose ol { margin: 0 0 11px; padding-left: 20px; }
+  .prose li { margin-bottom: 5px; }
+  .prose li > ul, .prose li > ol { margin-top: 5px; }
+  .prose blockquote {
+    margin: 14px 0; padding: 10px 16px; border-left: 3px solid var(--accent);
+    background: var(--accent-soft); border-radius: 0 8px 8px 0;
+  }
+  .prose blockquote p:last-child { margin-bottom: 0; }
+  .prose code { background: var(--panel-alt); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-size: 12.5px; }
+  .prose a { color: var(--accent); }
+  .prose a.xref { border-bottom: 1px dashed var(--accent); text-decoration: none; }
+
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+  footer { margin-top: 40px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 14px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 20px 14px 60px; }
+    h1 { font-size: 21px; }
+    .cards { grid-template-columns: 1fr; }
+    .overlay { padding: 0; }
+    .sheet { border-radius: 0; border: none; padding: 20px 16px 40px; margin-bottom: 0; min-height: 100%; }
+    .facts dl { grid-template-columns: 1fr; gap: 0 0; }
+    .facts dt { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>사례조사 대시보드</h1>
+      <p class="sub">골프 수강생 유형 분류 &amp; 티칭 가이드 서비스 — 경쟁사 / 니즈검증 / 인접산업</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">테마: 자동</button>
+  </header>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div id="tabs" role="tablist" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <input class="search" id="search" type="search" placeholder="제목 · 태그 · 내용 검색" aria-label="검색">
+    <label class="toggle-line"><input type="checkbox" id="onlyFlag"> 확인필요만</label>
+  </div>
+
+  <h2 class="view-title">사례 비교 표</h2>
+  <div class="tablewrap"><table id="cmp"><thead></thead><tbody></tbody></table></div>
+
+  <h2 class="view-title">사례 카드</h2>
+  <div class="cards" id="cards"></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <article class="sheet" id="sheet"></article>
+</div>
+
+<script>
+const NOTES = [{"title": "K-Motion (K-Vest) — 3D 바이오메카닉스 평가 + 바이오피드백 코칭", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "K-Motion_KVest_3D바이오메카닉스.md", "relpath": "01_경쟁사_유사서비스/K-Motion_KVest_3D바이오메카닉스.md", "source_url": "https://www.k-motion.com/software/", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "골프 코치, 골프 피트니스 센터, 물리치료 기반 골프 퍼포먼스 클리닉", "pricing": "확인필요 (공개 페이지에 가격 미기재, 문의 기반 영업으로 추정)", "core_offering": "웨어러블 센서로 몸통·골반 회전을 3D 캡처 → kinematic sequence(운동사슬 순서) 효율 분석 → 점수/시각화로 변환 → 시청각 바이오피드백으로 새 동작을 훈련시킴.", "strengths": ["'평가 → 계획 → 실행(바이오피드백)'이 한 제품 안에서 닫히는 구조. 우리가 지향하는 루프와 가장 유사", "복잡한 3D 데이터를 '이해하기 쉬운 점수와 비주얼'로 번역하는 것을 명시적 가치제안으로 내세움", "TPI와 공동 웨비나(K-VEST TPI 3D Biomechanics 101) — TPI 프레임워크와 하드웨어의 결합 선례"], "weaknesses": ["센서 착용이 필요 — 레슨 회차마다 장비 세팅 부담", "분류 축이 동작(kinematic sequence)이지 신체 제약이 아님", "가격 비공개 = 엔터프라이즈 영업 모델, 개인 레슨프로 대상 셀프서브 확장성 낮음"], "data_or_evidence_used": "K-Motion 공식 software/for-coaches/education 페이지, FitGolf 등 도입 센터 소개 페이지", "relevance_to_us": "가설2와 직결. '데이터를 코치가 쓸 수 있는 형태로 번역한다'는 우리 핵심 가치가 이미 상품화되어 있음을 보여줌.", "differentiation_gap": "K-Motion은 장비가 있어야 시작된다. 우리는 '장비 없이, 프로가 눈과 손으로 측정한 신체 정보 입력만으로' 시작할 수 있다는 점이 유일하게 방어 가능한 갭. 대신 데이터 정밀도는 포기해야 함.", "tags": ["경쟁사", "3D모션", "바이오피드백", "TPI연계", "엔터프라이즈"], "summary": "평가→계획→피드백 루프를 하드웨어로 구현한 사례. TPI 프레임워크와 하드웨어가 결합하는 전형적 패턴을 보여주며, \"데이터의 쉬운 번역\"이 이미 판매 가능한 가치임을 입증한다.", "judgement": "- 가격 비공개는 곧 \"이 카테고리는 아직 셀프서브 SaaS가 아니다\"라는 신호. 국내 개인 레슨프로를 월 몇 만원에 셀프서브로 모으는 전략은 이 카테고리에서 전례가 없음 — 기회이자 리스크.\n- 확인필요: K-Motion 실제 가격, 국내 딜러 유무.", "body_html": "<h3>요약<\/h3><p>평가→계획→피드백 루프를 하드웨어로 구현한 사례. TPI 프레임워크와 하드웨어가 결합하는 전형적 패턴을 보여주며, \"데이터의 쉬운 번역\"이 이미 판매 가능한 가치임을 입증한다.<\/p><h3>상세 노트<\/h3><ul><li>시스템명 K-Vest는 Kinematic Sequence에서 유래. 전환·다운스윙 구간의 에너지 전달 순서 효율을 분석.<\/li><li>K-Coach Evaluation: 3D 데이터를 점수와 비주얼로 변환.<\/li><li>워크플로우: 데이터 평가 → 새 스윙 계획 → 바이오피드백(시각·청각 큐)으로 실행.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>가격 비공개는 곧 \"이 카테고리는 아직 셀프서브 SaaS가 아니다\"라는 신호. 국내 개인 레슨프로를 월 몇 만원에 셀프서브로 모으는 전략은 이 카테고리에서 전례가 없음 — 기회이자 리스크.<\/li><li>확인필요: K-Motion 실제 가격, 국내 딜러 유무.<\/li><\/ul>", "slug": "K-Motion_KVest_3D바이오메카닉스"}, {"title": "Sportsbox AI 3DGolf — 스마트폰 3D 모션 분석 + 드릴 처방", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "SportsboxAI_3DGolf.md", "relpath": "01_경쟁사_유사서비스/SportsboxAI_3DGolf.md", "source_url": "https://www.sportsbox.ai/", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "B2C 아마추어 골퍼 + B2B 코치/트레이닝센터", "pricing": "무료(월 5스윙, 목표 1개) / 유료 약 $110 per year 또는 $9.17 per month / Sportsbox Studio(코치·센터용 고속카메라 시스템) 약 $5,000부터", "core_offering": "스마트폰 영상만으로 3D 스윙 모션 캡처 → 측정값 기반 목표(goal) 설정 → 목표에 맞는 드릴/콘텐츠 자동 배정. 3D Practice 구독 시 150개 이상 Practice Guide 제공.", "strengths": ["하드웨어 없이 스마트폰만으로 3D 데이터 — 진입장벽이 가장 낮은 축", "코치가 앱 안에서 수강생 목표를 설정하고 드릴을 '배정'하는 B2B2C 워크플로우 보유 (우리가 그리던 그림과 유사)", "B2C 구독($110/년)과 B2B 스튜디오($5,000+) 투트랙 가격 구조", "세계적 코치들의 콘텐츠를 Practice Guide로 라이선싱 — 콘텐츠 해자"], "weaknesses": ["분류의 기준이 '스윙 모션 데이터'이지 '신체적 특징(유연성/근력/관절가동범위/체형)'이 아님", "유형(type)을 라벨링해주는 게 아니라 측정값 대비 목표를 잡는 방식 — '이 수강생은 A유형' 같은 진단적 산출물은 없음", "한국어 지원/국내 보급 확인필요"], "data_or_evidence_used": "공식 사이트, 3D Practice 런칭 보도자료, 다수 3rd-party 리뷰(golficity, golflink)의 가격 기재", "relevance_to_us": "가설2(유형별 티칭 처방) 및 가설3(지불의향)과 관련. 코치가 드릴을 배정하는 도구에 실제로 구독료가 발생하고 있다는 점이 가설3에 우호적 근거.", "differentiation_gap": "Sportsbox는 '스윙이 어떻게 움직였나'를 본다. 우리는 '이 사람의 몸이 무엇을 할 수 있나'에서 출발한다고 주장할 수 있다. 단, 그 주장이 성립하려면 신체 스크린 데이터가 스윙 데이터보다 티칭 의사결정에 더 유용하다는 증거가 필요 — 아직 없음.", "tags": ["경쟁사", "스윙분석", "AI", "구독모델", "B2B2C"], "summary": "스마트폰 3D 모션 분석의 대표 주자. 코치가 앱에서 수강생 목표·드릴을 관리하는 구조까지 이미 갖췄고, $110/년이라는 구체적 B2C 가격점이 존재한다. 다만 분류 축이 '신체'가 아니라 '스윙 모션'이다.", "judgement": "- 우리가 \"코치가 수강생에게 처방을 배정하는 앱\"을 만들겠다면 이건 직접 경쟁이다. 기능 경쟁으로는 이길 수 없다.\n- 가격 참고점: 개인 골퍼 기준 연 $110(약 15만원)이 시장이 수용한 가격대. 국내 프로 대상 B2B라면 이보다 낮거나(골프데스크 36만원/년 참고) 명확한 ROI 스토리가 필요.\n- 확인필요: 실제 코치 사용자 수, 국내 사용자 규모.", "body_html": "<h3>요약<\/h3><p>스마트폰 3D 모션 분석의 대표 주자. 코치가 앱에서 수강생 목표·드릴을 관리하는 구조까지 이미 갖췄고, $110/년이라는 구체적 B2C 가격점이 존재한다. 다만 분류 축이 '신체'가 아니라 '스윙 모션'이다.<\/p><h3>상세 노트<\/h3><ul><li>무료 티어: 월 5스윙 / 목표 1개 → 유료 전환 퍼널 설계가 명확.<\/li><li>코치 연동: 강사가 같은 앱을 쓰면 목표 설정·진척 모니터링·드릴 배정 가능.<\/li><li>Sportsbox Studio: 고속 카메라 대수에 따라 가격 상승, 코치·센터 타깃.<\/li><li>3D Practice: 150+ Practice Guide, 유명 코치 콘텐츠 탑재.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>우리가 \"코치가 수강생에게 처방을 배정하는 앱\"을 만들겠다면 이건 직접 경쟁이다. 기능 경쟁으로는 이길 수 없다.<\/li><li>가격 참고점: 개인 골퍼 기준 연 $110(약 15만원)이 시장이 수용한 가격대. 국내 프로 대상 B2B라면 이보다 낮거나(골프데스크 36만원/년 참고) 명확한 ROI 스토리가 필요.<\/li><li>확인필요: 실제 코치 사용자 수, 국내 사용자 규모.<\/li><\/ul>", "slug": "SportsboxAI_3DGolf"}, {"title": "TPI (Titleist Performance Institute) — 신체 스크리닝 기반 골프 티칭 분류 체계", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "TPI_Titleist_Performance_Institute.md", "relpath": "01_경쟁사_유사서비스/TPI_Titleist_Performance_Institute.md", "source_url": "https://www.mytpi.com/certification", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "골프 티칭프로, 피트니스 트레이너, 물리치료사/의료진, 주니어 코치", "pricing": "확인필요 (Level 1 온라인 / Level 2 온라인 5개 트랙 / Level 3 오프라인 3일 세미나 구조는 확인됨, 금액은 공개 페이지에서 미확인)", "core_offering": "16개 신체 스크린 → 12개 스윙 특성(Swing Characteristics)과의 상관관계 매핑 → 65종 이상 교정 운동 프로토콜. 'Body-Swing Connection™' 이라는 이름의 인증 커리큘럼으로 패키징.", "strengths": ["우리 사업의 핵심 아이디어(신체 특징 → 유형 → 티칭/교정 처방)를 이미 체계화한 사실상의 업계 표준", "인증(자격증) 모델이라 코치 개인에게 '권위'를 부여 → 코치가 돈을 내는 이유가 명확", "Golf Digest 선정 Top 70 골프 피트니스 전문가 중 69명이 TPI 인증이라고 자체 주장 (마케팅 수치, 확인필요)", "골프/의료/피트니스/주니어/파워 5개 트랙으로 세분화된 확장 구조"], "weaknesses": ["소프트웨어가 아니라 '사람이 배우는 교육 과정' — 수강생별 데이터를 누적/자동화해주는 도구는 약함", "스크린 실행과 해석이 코치의 수작업과 암기에 의존 (16개 스크린을 매 수강생에게 직접 수행)", "국내 보급률·한국어 지원 여부 확인필요", "12 swing characteristics는 '스윙 결함 분류'에 가깝고, '수강생 인격/학습유형별 티칭 방식'까지는 다루지 않음"], "data_or_evidence_used": "TPI 공식 인증 페이지, Titleist Learning Lab 물리 스크린 설명 페이지, TPI 인증 클리닉들의 서비스 소개 페이지", "relevance_to_us": "가설1·가설2 모두와 정면으로 관련. 가설1(신체 기반 유형화 가능)과 가설2(유형별 티칭 방식 존재)는 TPI가 이미 20년 가까이 상업적으로 검증해 온 영역 — 즉 '아무도 안 한 일'이 아니라 '이미 표준이 있는 일'.", "differentiation_gap": "TPI는 교육/자격증이고 우리는 도구다. 갭은 ① 스크린 결과 입력 → 자동 유형 판정 → 티칭 처방 + 참고영상 자동 매칭 ② 수강생별 이력 누적 ③ 한국어/국내 레슨 현장 워크플로우. 반대 리스크: TPI가 앱을 내면 우리 포지션이 사라짐.", "tags": ["경쟁사", "신체기반분류", "인증교육", "직접경쟁", "TPI"], "summary": "TPI는 16개 신체 스크린으로 골퍼의 움직임 제약을 평가하고, 그 결과를 12개 스윙 특성과 연결해 교정 운동을 처방하는 체계다. 우리가 만들려는 것의 \"지식 레이어\"가 이미 상업적 표준으로 존재한다.", "judgement": "- **이 노트가 이번 리서치에서 가장 중요하다.** \"신체 기반 유형분류 + 티칭 가이드\"는 빈 시장이 아니다. 우리의 진짜 질문은 \"이 개념이 통하는가?\"가 아니라 \"TPI 프레임워크를 한국 레슨 현장에서 쓰기 쉽게 만든 소프트웨어에 국내 프로가 돈을 내는가?\"로 바뀌어야 한다.\n- 전략 옵션 두 가지: (a) TPI 대체 → 권위 싸움에서 매우 불리. (b) TPI/유사 프레임워크의 **실행 도구**로 포지셔닝 → 훨씬 현실적. 단 TPI 콘텐츠 저작권/인증 정책 확인 필요.\n- 확인 필요: TPI Level 1 실제 수강료, 국내 인증 프로 수, 한국어 과정 유무.", "body_html": "<h3>요약<\/h3><p>TPI는 16개 신체 스크린으로 골퍼의 움직임 제약을 평가하고, 그 결과를 12개 스윙 특성과 연결해 교정 운동을 처방하는 체계다. 우리가 만들려는 것의 \"지식 레이어\"가 이미 상업적 표준으로 존재한다.<\/p><h3>상세 노트<\/h3><ul><li>구조: 16 physical screens → 12 swing characteristics → 65+ corrective exercises.<\/li><li>철학: \"골퍼는 자기 움직임 능력에 스윙 스타일을 맞춰야 한다(match swing style to movement capabilities)\". 우리 가설2의 문장과 거의 동일.<\/li><li>인증 단계: Level 1(온라인, 기초) → Level 2(온라인, Golf/Medical/Fitness/Junior/Power 5트랙) → Level 3(오프라인 3일 세미나, 동일 5트랙).<\/li><li>TPI Level 1은 NSCA·ACE·NASM에서 보수교육 학점으로 인정 — 의료/피트니스 쪽 제도권 연결이 강함.<\/li><li>K-Motion(K-Vest)이 \"K-VEST TPI 3D Biomechanics\" 웨비나를 운영 — 하드웨어 업체들이 TPI 프레임워크를 자기 제품 위에 얹는 구도가 이미 형성됨.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>이 노트가 이번 리서치에서 가장 중요하다.<\/strong> \"신체 기반 유형분류 + 티칭 가이드\"는 빈 시장이 아니다. 우리의 진짜 질문은 \"이 개념이 통하는가?\"가 아니라 \"TPI 프레임워크를 한국 레슨 현장에서 쓰기 쉽게 만든 소프트웨어에 국내 프로가 돈을 내는가?\"로 바뀌어야 한다.<\/li><li>전략 옵션 두 가지: (a) TPI 대체 → 권위 싸움에서 매우 불리. (b) TPI/유사 프레임워크의 <strong>실행 도구<\/strong>로 포지셔닝 → 훨씬 현실적. 단 TPI 콘텐츠 저작권/인증 정책 확인 필요.<\/li><li>확인 필요: TPI Level 1 실제 수강료, 국내 인증 프로 수, 한국어 과정 유무.<\/li><\/ul>", "slug": "TPI_Titleist_Performance_Institute"}, {"title": "TrackMan / Rapsodo — 탄도·스윙 계측 하드웨어 진영", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "TrackMan_Rapsodo_하드웨어_계측.md", "relpath": "01_경쟁사_유사서비스/TrackMan_Rapsodo_하드웨어_계측.md", "source_url": "https://www.trackman.com/", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "TrackMan: 프로 코치·아카데미·시뮬레이터 사업자 / Rapsodo: 개인 골퍼 + 소규모 코치", "pricing": "TrackMan iO 본체 약 $13,995, TrackMan 4 약 $21,495~$24,950, 풀세팅 $20,000~$30,000, TPS 소프트웨어 연 구독 약 $1,100 / Rapsodo MLM2PRO $699.99", "core_offering": "레이더+카메라 기반 클럽·볼 데이터 계측(iO는 40+ 파라미터). 클라우드 샷 히스토리, 영상 연동, Combine 테스트 프로토콜, 가상 코스.", "strengths": ["데이터 정확도와 브랜드 신뢰도에서 사실상 업계 기준", "하드웨어 판매 후 연 $1,100 소프트웨어 구독으로 이어지는 수익 구조가 이미 검증됨", "Rapsodo는 $699.99로 가격 하한을 크게 낮춰 계측 데이터를 일반화시킴"], "weaknesses": ["계측만 할 뿐 '이 수강생은 어떤 유형이고 어떻게 가르쳐야 하는가'는 전적으로 코치 몫", "신체 특징(유연성/근력/ROM) 입력 개념 자체가 없음", "국내 레슨프로 기준 TrackMan 도입 비용은 비현실적 — 대형 아카데미·스크린 사업자 중심"], "data_or_evidence_used": "TrackMan 공식 사이트 + 다수 리테일/리뷰 사이트의 2026년 가격 기재, Rapsodo 공식 제품 페이지", "relevance_to_us": "가설3(지불의향)에 강한 간접 근거. 골프 교습 현장은 '데이터 도구'에 연 $1,100 수준을 이미 지불하고 있다. 동시에 가설2의 공백을 보여줌 — 데이터는 넘치는데 해석·처방 레이어가 비어 있음.", "differentiation_gap": "핵심 갭: 'raw data → 무엇을 가르칠지' 사이의 번역 레이어. 우리가 노릴 자리가 여기라면, 하드웨어를 만들 게 아니라 이들 데이터를 입력으로 받는 해석 레이어여야 한다.", "tags": ["경쟁사", "하드웨어", "계측", "가격참고", "보완재"], "summary": "계측 진영은 '데이터를 얼마나 정확히 뽑는가'로 경쟁하며 이미 고가 구독 모델을 확립했다. 그러나 뽑은 데이터를 티칭 의사결정으로 번역하는 일은 여전히 코치의 머릿속에 있다. 이 공백이 우리 사업의 논리적 근거다.", "judgement": "- 이들은 경쟁자라기보다 **보완재/데이터 소스**로 보는 게 맞다. 초기 제품에서 TrackMan/Rapsodo CSV·클라우드 연동을 지원하면 \"이미 산 장비를 더 잘 쓰게 해주는 도구\"로 포지셔닝 가능.\n- 다만 국내 레슨프로 개인이 TrackMan을 보유한 비율은 낮을 것 — 국내 침투율 확인필요. 우리 MVP는 장비 없이 신체 스크린 입력만으로도 동작해야 한다.", "body_html": "<h3>요약<\/h3><p>계측 진영은 '데이터를 얼마나 정확히 뽑는가'로 경쟁하며 이미 고가 구독 모델을 확립했다. 그러나 뽑은 데이터를 티칭 의사결정으로 번역하는 일은 여전히 코치의 머릿속에 있다. 이 공백이 우리 사업의 논리적 근거다.<\/p><h3>상세 노트<\/h3><ul><li>TrackMan iO 본체 $13,995 / TrackMan 4 $21,495~$24,950. 본체는 전체 구축비의 50~60% 수준이라 풀세팅 $20k~$30k.<\/li><li>TPS(TrackMan Performance Studio) 연 갱신 약 $1,100 — 클라우드 샷 히스토리, Combine, 400+ 코스, 영상 통합 포함.<\/li><li>Rapsodo MLM2PRO $699.99, 15개 지표(8개 직접 측정), down-the-line/face-on 영상, R-Cloud 세션 저장.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>이들은 경쟁자라기보다 <strong>보완재/데이터 소스<\/strong>로 보는 게 맞다. 초기 제품에서 TrackMan/Rapsodo CSV·클라우드 연동을 지원하면 \"이미 산 장비를 더 잘 쓰게 해주는 도구\"로 포지셔닝 가능.<\/li><li>다만 국내 레슨프로 개인이 TrackMan을 보유한 비율은 낮을 것 — 국내 침투율 확인필요. 우리 MVP는 장비 없이 신체 스크린 입력만으로도 동작해야 한다.<\/li><\/ul>", "slug": "TrackMan_Rapsodo_하드웨어_계측"}, {"title": "국내 골프 레슨 관리 SaaS — 골프데스크, 구스트, 김캐디", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "국내_골프레슨_관리SaaS_골프데스크_구스트.md", "relpath": "01_경쟁사_유사서비스/국내_골프레슨_관리SaaS_골프데스크_구스트.md", "source_url": "https://www.golfdesk.co.kr/", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "골프연습장/아카데미 운영자(골프데스크), 레슨을 판매하려는 개인 프로(구스트), 골퍼 소비자(김캐디)", "pricing": "골프데스크 연 약 36만원 (+ K-디지털 전환 지원사업으로 설치·장비 최대 500만원 지원 안내). 구스트·김캐디는 예약 수수료/중개 모델로 추정(확인필요)", "core_offering": "골프데스크: 회원관리·레슨관리·결제연동·매출통계·키오스크 체크인을 묶은 골프장 CRM. 수강생용 '이룸' 앱에서 레슨 예약 및 레슨 영상 복습. / 구스트·김캐디: 레슨·연습장·스크린 예약 중개.", "strengths": ["이미 국내 레슨 현장의 '운영 워크플로우'를 장악 — 프로가 매일 여는 화면이 여기임", "결제 연동 기반이라 이탈 비용이 큼 (매출 데이터가 잠김)", "강사별 대시보드, 수강생 진척 차트, 레슨 피드백 기능까지 이미 존재", "정부 지원사업(K-디지털) 연계로 도입 장벽을 낮춤"], "weaknesses": ["핵심은 '운영·정산 효율'이지 '티칭 품질'이 아님 — 신체 기반 유형 분류나 티칭 처방 기능은 없음", "레슨 콘텐츠는 강사가 직접 남기는 피드백/영상에 의존, 지식 레이어 부재", "구매 결정권이 개인 프로가 아니라 센터 운영자에게 있음"], "data_or_evidence_used": "골프데스크 공식 사이트(기능·가격 기재), 구스트 공식 사이트, 김캐디 App Store 페이지 및 자체 블로그", "relevance_to_us": "가설3의 가장 현실적인 가격 앵커. 국내 골프 교습 사업자가 소프트웨어에 지불하는 금액이 연 36만원 수준이라는 실측치. 동시에 '유형분류+티칭가이드' 기능이 국내에 비어 있음을 확인.", "differentiation_gap": "이들이 비워둔 자리가 정확히 우리 자리다: 운영 데이터는 쌓이는데 '이 수강생을 어떻게 가르칠지'는 없다. 다만 경로는 두 가지 — 이들과 경쟁하거나, 이들의 애드온/API 파트너가 되거나. 후자가 유리해 보임.", "tags": ["경쟁사", "국내", "SaaS", "CRM", "가격앵커", "파트너후보"], "summary": "국내에는 이미 레슨 운영 SaaS가 자리잡고 있으나(골프데스크 연 36만원), 어느 곳도 수강생 유형 분류나 티칭 가이드를 제공하지 않는다. 국내 시장의 빈칸은 확인되지만, 그 빈칸이 비어 있는 이유가 '수요 부재'인지 '아직 아무도 안 함'인지는 이 자료만으로 판별 불가.", "judgement": "- **가격 현실 점검**: 연습장이 CRM 전체에 36만원/년을 쓴다면, 티칭 보조 기능 하나에 개인 프로가 월 3~5만원(연 36~60만원)을 낼 것이라는 가정은 낙관적이다. 가설3 검증 시 이 앵커를 반드시 인터뷰에서 제시할 것.\n- 파트너 전략 검토: 골프데스크에 \"유형진단 모듈\"을 얹는 방식이면 영업 비용과 워크플로우 진입 문제를 동시에 해결. 우선 접촉 대상.\n- 확인필요: 구스트/김캐디 수수료율, 골프데스크 실제 도입 센터 수.", "body_html": "<h3>요약<\/h3><p>국내에는 이미 레슨 운영 SaaS가 자리잡고 있으나(골프데스크 연 36만원), 어느 곳도 수강생 유형 분류나 티칭 가이드를 제공하지 않는다. 국내 시장의 빈칸은 확인되지만, 그 빈칸이 비어 있는 이유가 '수요 부재'인지 '아직 아무도 안 함'인지는 이 자료만으로 판별 불가.<\/p><h3>상세 노트<\/h3><ul><li>골프데스크: \"6년 이상 골프 아카데미 운영 노하우 기반 국내 1등 골프 CRM\" 자체 표방. 회원관리 알고리즘(활동기간·구매패턴 기반), 국내 최초 결제연동 회원권 솔루션 주장, 일·월 매출통계, QR 키오스크 체크인, 강사별 대시보드 + 수강생 진척 차트. 수강생 앱 '이룸'에서 레슨 영상 복습.<\/li><li>구스트(GOOST): 프로 선택 → 1회/다회권 → 날짜·시간 선택 → 스튜디오 이용료 포함 결제. 레슨 예약 중개 중심.<\/li><li>김캐디: 스크린·연습장·레슨·필드 예약 통합 소비자 앱.<\/li><li>골프존 레드베터 아카데미(GLA) 같은 브랜드 아카데미는 자체 커리큘럼 보유 — 별도 확인 대상.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>가격 현실 점검<\/strong>: 연습장이 CRM 전체에 36만원/년을 쓴다면, 티칭 보조 기능 하나에 개인 프로가 월 3~5만원(연 36~60만원)을 낼 것이라는 가정은 낙관적이다. 가설3 검증 시 이 앵커를 반드시 인터뷰에서 제시할 것.<\/li><li>파트너 전략 검토: 골프데스크에 \"유형진단 모듈\"을 얹는 방식이면 영업 비용과 워크플로우 진입 문제를 동시에 해결. 우선 접촉 대상.<\/li><li>확인필요: 구스트/김캐디 수수료율, 골프데스크 실제 도입 센터 수.<\/li><\/ul>", "slug": "국내_골프레슨_관리SaaS_골프데스크_구스트"}, {"title": "유튜브 골프 레슨 콘텐츠 — 가장 강력한 무료 대체재", "category": "경쟁사_유사서비스", "folder": "01_경쟁사_유사서비스", "filename": "유튜브_레슨콘텐츠_대체재.md", "relpath": "01_경쟁사_유사서비스/유튜브_레슨콘텐츠_대체재.md", "source_url": "https://www.golfjournal.co.kr/news/articleView.html?idxno=3834", "source_type": "기사", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "아마추어 골퍼 (특히 비용 부담으로 정규 레슨을 못 받는 층), 그리고 실질적으로는 레슨프로 본인도 학습용으로 소비", "pricing": "무료 (광고·협찬 모델)", "core_offering": "증상별·클럽별 레슨 영상 라이브러리. '골프맨' 조윤성 48만+ 구독, '임진한 클라스' 42만+ 구독, '닥치고 스윙' 김준년 16만+ 구독에 약 630개 레슨 영상.", "strengths": ["무료, 무제한, 즉시 접근 — 가격 경쟁 자체가 불가능", "증상 기반 검색('드라이버 슬라이스')이 일반 골퍼의 실제 탐색 방식과 일치", "이미 방대한 콘텐츠 풀 → 우리 서비스의 '참고자료 매칭' 소스로 쓸 수 있음"], "weaknesses": ["개인화 없음 — 같은 영상이 모든 체형·유연성·수준에 동일하게 노출됨", "상충하는 조언이 난립해 학습자가 혼란(골프 교습 커뮤니티의 공통 불만: 학생이 '나쁜 조언'에 휩쓸려 자신감을 잃음)", "검증되지 않은 콘텐츠와 전문가 콘텐츠가 구분되지 않음"], "data_or_evidence_used": "골프저널 기사, 하퍼스바자 코리아 채널 소개 기사, 다수 커뮤니티 게시글(딜바다 골프포럼)", "relevance_to_us": "가설2·가설3 양쪽에 영향. 콘텐츠 자체는 이미 공짜이므로, 우리가 팔 수 있는 것은 콘텐츠가 아니라 '이 수강생에게 이 영상'이라는 매칭/큐레이션이다.", "differentiation_gap": "우리 제품의 '참고 유튜브 안내' 기능은 그 자체로는 차별점이 아니라 원가 절감 수단이다. 차별점은 매칭 정확도. 매칭이 대충이면 유저는 그냥 직접 검색한다.", "tags": ["대체재", "콘텐츠", "무료", "큐레이션", "국내"], "summary": "한국 골프 레슨 콘텐츠는 이미 무료로 포화 상태이고, 유튜브 독학이 유료 레슨의 실질적 대체재로 기능하고 있다. 우리 서비스가 유튜브 링크를 제공하는 것은 가치가 아니라 전제이며, 가치는 '누구에게 무엇을' 붙이는 매칭 정확도에서만 나온다.", "judgement": "- 이 노트는 우리 사업의 **가치 제안을 좁혀준다**: \"영상을 추천해주는 서비스\"가 아니라 \"이 수강생에게 맞지 않는 조언을 걸러주는 서비스\"로 프레이밍하는 편이 유튜브 대비 우위를 설명하기 쉽다.\n- 저작권 확인필요: 타인 채널 영상을 서비스 내에 임베드/큐레이션할 때의 법적·정책적 범위.\n- 구독자 수는 기사 기준 시점값이므로 실제 집계 시 재확인 필요.", "body_html": "<h3>요약<\/h3><p>한국 골프 레슨 콘텐츠는 이미 무료로 포화 상태이고, 유튜브 독학이 유료 레슨의 실질적 대체재로 기능하고 있다. 우리 서비스가 유튜브 링크를 제공하는 것은 가치가 아니라 전제이며, 가치는 '누구에게 무엇을' 붙이는 매칭 정확도에서만 나온다.<\/p><h3>상세 노트<\/h3><ul><li>주요 채널 규모: 골프맨(조윤성) 48만+, 임진한 클라스 42만+, 닥치고 스윙(김준년) 16만+ / 630여 편.<\/li><li>소비 동기(기사 인용): 레슨 비용 부담과 연습장 방문의 번거로움을 줄이려 독학.<\/li><li>부작용(영문 교습 커뮤니티 GolfWRX 논의): 학생이 잘못된 조언·자기진단으로 옆길로 새고 자신감을 잃는 것이 모든 교습가의 공통 좌절.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>이 노트는 우리 사업의 <strong>가치 제안을 좁혀준다<\/strong>: \"영상을 추천해주는 서비스\"가 아니라 \"이 수강생에게 맞지 않는 조언을 걸러주는 서비스\"로 프레이밍하는 편이 유튜브 대비 우위를 설명하기 쉽다.<\/li><li>저작권 확인필요: 타인 채널 영상을 서비스 내에 임베드/큐레이션할 때의 법적·정책적 범위.<\/li><li>구독자 수는 기사 기준 시점값이므로 실제 집계 시 재확인 필요.<\/li><\/ul>", "slug": "유튜브_레슨콘텐츠_대체재"}, {"title": "TPI·PGA 인증 커리큘럼 — 신체 기반 분류가 제도권에서 다뤄지는 방식", "category": "니즈검증", "folder": "02_니즈검증", "filename": "TPI_PGA_인증커리큘럼_제도적근거.md", "relpath": "02_니즈검증/TPI_PGA_인증커리큘럼_제도적근거.md", "source_url": "https://www.mytpi.com/certification/tpi-certified-level-1", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "골프 티칭프로 지망생 및 현직 (미국 기준)", "pricing": "TPI 수강료 확인필요 / PGA PGM은 대학 4.5년 학위 연계 과정 포함, 비용 확인필요", "core_offering": "TPI Level 1: 신체 스크린으로 선수의 '신체적 준비 상태'를 빠르게 평가하고 그 결과를 스윙 특성과 상관지어 해석하는 법. PGA PGM: Level 1~3 단계 교육 + 16개월 인턴십 + PAT(실기시험), Level 1 이후 'Teaching & Coaching' 커리어 트랙 선택.", "strengths": ["신체 기반 분류 교육에 실제로 돈과 시간을 쓰는 시장이 제도 수준으로 존재 — 가설2의 '정리 가능성'은 이미 입증됨", "TPI Level 1이 NSCA·ACE·NASM 보수교육 학점으로 인정 = 외부 검증된 지식 체계", "PGA는 Level 1에서 'Introduction to Teaching' 모듈을 다루고 이후 교습 트랙으로 분기 — 교습 역량이 별도 전문 영역으로 제도화되어 있음"], "weaknesses": ["PGA PGM 커리큘럼의 Level 1 공개 모듈 목록은 고객관계·카트 관리·클럽 퍼포먼스 등 운영 비중이 크고, 신체 기반 유형 분류는 명시적으로 등장하지 않음 — 즉 PGA 본류는 이 영역을 TPI 같은 외부 인증에 위임", "국내 KPGA/KLPGA 티칭 자격 커리큘럼은 이번 조사 범위에서 미확인"], "data_or_evidence_used": "TPI 인증 공식 페이지, PGA.com 'How to become a PGA Professional', 위스콘신/미드웨스트 PGA 섹션의 PGM 로드맵 PDF, 대학 PGM 프로그램 카탈로그", "relevance_to_us": "가설2를 가장 강하게 지지하는 근거. '유형별 티칭 방식을 문헌·데이터로 정리할 수 있는가?' → 이미 정리되어 인증 상품으로 팔리고 있다.", "differentiation_gap": "제도가 지식을 '사람 머리에 주입하는 방식'으로만 유통시키고 있다. 같은 지식을 '입력하면 나오는 도구'로 유통시키는 사업자는 안 보임. 단, 그것이 기회인지 '코치들이 도구화를 원치 않아서'인지는 미검증.", "tags": ["니즈검증", "인증", "커리큘럼", "제도", "가설2지지"], "summary": "신체 스크린 → 스윙 특성 해석이라는 지식 체계는 이미 TPI를 통해 인증 상품으로 존재하고, 의료·피트니스 협회의 보수교육 학점으로도 인정된다. 가설2는 사실상 이미 참이다. 미검증인 것은 \"그 지식을 소프트웨어로 전달했을 때 코치가 돈을 내는가\"뿐이다.", "judgement": "- 이 구조가 시사하는 바: 골프 교습 지식 시장의 지불 주체는 이미 코치 본인이고, 지불 형태는 '자격증'이다. 우리가 구독 SaaS를 팔려면 자격증이 주는 두 가지 부가가치(권위 시그널, 커뮤니티)를 어떻게든 대체하거나 우회해야 한다.\n- 확인필요: KPGA/KLPGA 티칭프로 자격 커리큘럼에 신체 평가가 포함되는지 — 국내 시장 진입 시 필수 확인 항목.", "body_html": "<h3>요약<\/h3><p>신체 스크린 → 스윙 특성 해석이라는 지식 체계는 이미 TPI를 통해 인증 상품으로 존재하고, 의료·피트니스 협회의 보수교육 학점으로도 인정된다. 가설2는 사실상 이미 참이다. 미검증인 것은 \"그 지식을 소프트웨어로 전달했을 때 코치가 돈을 내는가\"뿐이다.<\/p><h3>상세 노트<\/h3><ul><li>TPI Level 1 학습 목표: 선수의 신체적 준비 상태를 빠르게 평가하고, 그 평가 결과가 선수의 스윙 특성과 어떻게 상관되는지 이해하기.<\/li><li>TPI Level 1은 NSCA, ACE, NASM에서 보수교육으로 인정.<\/li><li>PGA PGM: 3단계 코스워크 + 텍사스 프리스코 세미나. Level 1 모듈 예시 — Customer Relations, Golf Car Fleet Management, Introduction to Teaching and Club Performance + 2.5일 세미나. Level 1 이후 Teaching &amp; Coaching 커리어 패스 선택 가능.<\/li><li>대학 연계 PGA Golf Management: 4.5년 학사 + PGM Level 1~3 + 16개월 인턴십 + PAT.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>이 구조가 시사하는 바: 골프 교습 지식 시장의 지불 주체는 이미 코치 본인이고, 지불 형태는 '자격증'이다. 우리가 구독 SaaS를 팔려면 자격증이 주는 두 가지 부가가치(권위 시그널, 커뮤니티)를 어떻게든 대체하거나 우회해야 한다.<\/li><li>확인필요: KPGA/KLPGA 티칭프로 자격 커리큘럼에 신체 평가가 포함되는지 — 국내 시장 진입 시 필수 확인 항목.<\/li><\/ul>", "slug": "TPI_PGA_인증커리큘럼_제도적근거"}, {"title": "골프 프로 대상 인터뷰 질문지 초안", "category": "니즈검증", "folder": "02_니즈검증", "filename": "interview_questions_draft.md", "relpath": "02_니즈검증/interview_questions_draft.md", "source_url": "", "source_type": "인터뷰", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "국내 레슨프로 (경력 1~3년 / 5년 이상 / 아카데미 운영자 3개 세그먼트)", "pricing": "", "core_offering": "가설1·2·3 검증을 위한 반구조화 인터뷰 가이드", "strengths": [], "weaknesses": [], "data_or_evidence_used": "본 리서치 §01·§02 노트에서 도출된 미검증 지점", "relevance_to_us": "가설1·2·3 전부. 이번 데스크 리서치로 확인 불가능했던 국내 1차 데이터를 채우는 유일한 수단", "differentiation_gap": "", "tags": ["인터뷰", "질문지", "니즈검증", "액션아이템"], "summary": "데스크 리서치로 검증할 수 없었던 세 가지 — ① 국내 프로의 실제 페인포인트, ② 유형 분류를 도구로 받아들일 의향, ③ 실제 지불 의향과 지불 주체 — 를 확인하기 위한 인터뷰 가이드. 출처: [[국내_레슨프로_시장현실_지불여력]], [[티칭프로_커뮤니티_페인포인트_해외]], [[TPI_Titleist_Performance_Institute]]", "judgement": "- **가장 중요한 두 문항은 16번과 18번.** 16번은 \"AI 판정을 신뢰할 것인가\"(제품 실현 가능성), 18번 후반부는 \"지불 주체가 누구인가\"(사업 모델)를 가른다. 나머지는 맥락이다.\n- 11번(실제 지출 이력)이 18번(지불 의향)의 거짓말 탐지기 역할을 한다. 11번에서 \"돈 쓴 적 없다\"고 한 사람의 18번 답변은 할인해서 받아들일 것.\n- 인터뷰 3~4건 시점에 답변이 수렴하는지 중간 점검하고, 수렴하지 않으면 세그먼트 정의를 다시 잡을 것.", "body_html": "<h3>요약<\/h3><p>데스크 리서치로 검증할 수 없었던 세 가지 — ① 국내 프로의 실제 페인포인트, ② 유형 분류를 도구로 받아들일 의향, ③ 실제 지불 의향과 지불 주체 — 를 확인하기 위한 인터뷰 가이드. 출처: <a class=\"xref\" href=\"#\" data-note=\"국내_레슨프로_시장현실_지불여력\">국내_레슨프로_시장현실_지불여력<\/a>, <a class=\"xref\" href=\"#\" data-note=\"티칭프로_커뮤니티_페인포인트_해외\">티칭프로_커뮤니티_페인포인트_해외<\/a>, <a class=\"xref\" href=\"#\" data-note=\"TPI_Titleist_Performance_Institute\">TPI_Titleist_Performance_Institute<\/a><\/p><h3>상세 노트<\/h3><h4>진행 원칙<\/h4><ul><li><strong>솔루션을 먼저 설명하지 말 것.<\/strong> A~C 섹션이 끝나기 전에 우리 아이디어를 꺼내면 그 뒤 답변은 전부 오염된다.<\/li><li>의견(\"~할 것 같다\")이 아니라 <strong>행동 기록<\/strong>(\"최근 3개월에 실제로 뭘 했나\")을 묻는다.<\/li><li>목표 대상: 경력 1~3년 4명 / 5년 이상 4명 / 아카데미 운영자 3명. 회당 40~50분.<\/li><\/ul><h4>A. 워밍업 &amp; 현재 워크플로우 (5분)<\/h4><ol><li>지금 주당 몇 명, 몇 회차를 가르치시나요? 수강생 구성은 어떻게 되나요?<\/li><li>새 수강생이 처음 왔을 때, 첫 회차에 실제로 무엇을 하시는지 순서대로 말씀해 주세요.<\/li><li>그때 수강생에 대해 기록으로 남기는 게 있나요? 어디에, 어떤 형태로요? (앱? 노트? 안 남김?)<\/li><\/ol><h4>B. 페인포인트 — 가설1·2 (15분)<\/h4><ol><li>최근에 \"이 수강생은 잘 안 풀린다\"고 느꼈던 케이스를 하나만 구체적으로 들려주세요. 무엇이 막혔나요?<\/li><li>그때 어떻게 대응하셨나요? 누구에게 물어보거나, 어디를 찾아보셨나요?<\/li><li>수강생을 마음속으로 몇 가지 부류로 나눠서 보시나요? 나눈다면 기준이 뭔가요? <em>(자유 응답 → 그 기준이 신체인지, 실력인지, 성격/학습태도인지가 핵심 관찰 포인트)<\/em><\/li><li>몸 상태(유연성, 체형, 가동범위, 근력)를 실제로 확인하고 레슨 방향을 바꾸신 적이 있나요? 있다면 어떻게 확인하셨나요?<\/li><li>TPI 같은 신체 스크리닝 체계를 들어보셨거나 배우신 적 있나요? 배웠다면 현장에서 실제로 쓰시나요? 안 쓴다면 왜요?<\/li><li>같은 문제(예: 슬라이스)를 가진 두 수강생에게 다른 처방을 내리는 기준은 무엇인가요?<\/li><\/ol><h4>C. 현재 대안과 정보 탐색 (8분)<\/h4><ol><li>티칭 방법을 공부할 때 주로 어디를 보시나요? (유튜브/세미나/선배/자격 과정 등)<\/li><li>최근 1년간 티칭 역량이나 장비에 <strong>실제로 돈을 쓰신 적<\/strong>이 있나요? 얼마, 어디에요?<\/li><li>수강생에게 유튜브 영상을 추천해 주신 적 있나요? 어떻게 고르시나요? <em>(→ 매칭 니즈 확인)<\/em><\/li><li>지금 쓰시는 레슨 관리 프로그램이 있나요? (골프데스크/구스트 등) 그건 누가 결제하나요?<\/li><\/ol><h4>D. 솔루션 반응 — 가설2·3 (12분)<\/h4><p><em>여기서 처음으로 컨셉 제시: \"수강생의 신체 정보와 수업 기록을 입력하면 유형을 자동 분류하고, 그 유형에 맞는 티칭 방식과 참고 영상을 제안해주는 도구\"<\/em><\/p><ol><li>방금 설명을 듣고 가장 먼저 든 생각은 무엇인가요? (부정적 반응도 그대로 받아적을 것)<\/li><li>이게 있다면 어느 순간에 쓰실 것 같나요? 첫 상담? 매 회차? 안 쓰실 것 같나요?<\/li><li>이 도구가 제안한 유형 분류가 본인 판단과 다르면 어떻게 하시겠어요? <em>(신뢰 임계치 탐색 — 핵심 질문)<\/em><\/li><li>입력에 수강생 1명당 5분이 걸린다면 쓰실 의향이 있나요? 10분이면요? <em>(비용은 돈이 아니라 시간이다)<\/em><\/li><li><strong>이런 도구가 있다면 쓸 의향이 있으신가요? 있다면 한 달에 얼마까지 내실 수 있나요?<\/strong> 이어서: 그 돈은 프로님 개인 지갑에서 나가나요, 아니면 센터에서 결제하나요?<\/li><li>지금 당장 결제 링크를 드리면 결제하시겠어요? 아니라면, 무엇이 충족돼야 결제하시겠어요?<\/li><li>반대로, 이 도구를 쓰는 것이 본인 전문성에 대한 평가를 낮추게 만든다고 느끼실 여지가 있나요? <em>(§02 해외 커뮤니티 담론에서 도출된 리스크)<\/em><\/li><\/ol><h4>E. 마무리 (5분)<\/h4><ol><li>제가 여쭤봤어야 했는데 안 여쭤본 게 있을까요?<\/li><li>같은 얘기를 나눠볼 만한 다른 프로님을 소개해 주실 수 있을까요?<\/li><\/ol><h3>판단 메모<\/h3><ul><li><strong>가장 중요한 두 문항은 16번과 18번.<\/strong> 16번은 \"AI 판정을 신뢰할 것인가\"(제품 실현 가능성), 18번 후반부는 \"지불 주체가 누구인가\"(사업 모델)를 가른다. 나머지는 맥락이다.<\/li><li>11번(실제 지출 이력)이 18번(지불 의향)의 거짓말 탐지기 역할을 한다. 11번에서 \"돈 쓴 적 없다\"고 한 사람의 18번 답변은 할인해서 받아들일 것.<\/li><li>인터뷰 3~4건 시점에 답변이 수렴하는지 중간 점검하고, 수렴하지 않으면 세그먼트 정의를 다시 잡을 것.<\/li><\/ul>", "slug": "interview_questions_draft"}, {"title": "국내 레슨프로 시장 현실 — 수입 편차, 시장 축소, 지불여력", "category": "니즈검증", "folder": "02_니즈검증", "filename": "국내_레슨프로_시장현실_지불여력.md", "relpath": "02_니즈검증/국내_레슨프로_시장현실_지불여력.md", "source_url": "https://www.m-i.kr/news/articleView.html?idxno=1355542", "source_type": "기사", "date_collected": "2026-09-12", "confidence": "확인필요", "target_customer": "국내 골프 레슨프로 및 연습장/아카데미 운영자", "pricing": "N/A (시장 환경 조사)", "core_offering": "N/A", "strengths": ["레슨프로 수입 상단이 존재 — 잘하는 프로는 월 수천만원대까지 감 (=성과 개선에 투자할 동기가 있는 상위층 존재)", "'회원에게 인정받는 것'이 수입과 직결되는 구조 → 티칭 품질 개선이 곧 매출이라는 ROI 스토리를 만들 수 있음"], "weaknesses": ["골프 인구 3년 연속 감소 (2022년 5,058만 → 2023년 4,772만 → 2024년 4,741만 → 2025년 4,641만 이용객). 2030년까지 추가 감소 전망, 특히 40~50대 6.2% 감소 예상", "연습장 폐업 증가 (서울에서만 한 해 52곳 폐업 사례 보도)", "레슨 단가 하락, 다수 연습장이 프로 기본급 폐지 — 프로 개인의 현금 여력 악화", "수입 편차 극단적(월 200만원대 ~ 월 2,000만원) → 하위층은 유료 도구 구매 여력이 사실상 없음"], "data_or_evidence_used": "매일일보/한국일보 골프산업 기사(이용객 통계), 경향신문 연습장 폐업 기사, 야놀자리서치 골프산업 전망 리포트, 현직 레슨프로 본인 서술(Threads 게시글)", "relevance_to_us": "가설3(지불의향)에 대한 가장 강한 반대 근거. 시장이 축소 중이고 공급자(프로)가 과잉이며 단가가 눌리는 구간에서는 신규 SaaS 지출이 가장 먼저 잘린다.", "differentiation_gap": "판매 대상을 재고해야 함: 여력 없는 개인 프로 다수(B2C)가 아니라, 프로를 다수 고용하고 회원 이탈률에 민감한 아카데미/연습장(B2B)이 지불 주체일 가능성이 높다.", "tags": ["니즈검증", "국내시장", "지불의향", "리스크", "가설3반대근거"], "summary": "국내 골프 시장은 2022년 정점 이후 3년 연속 축소 중이고, 연습장 폐업과 레슨 단가 하락, 기본급 폐지가 동시에 진행 중이다. 개인 레슨프로의 지불여력 가정은 낙관적이며, 가설3은 이번 리서치에서 가장 약하게 지지된다.", "judgement": "- **confidence 확인필요 사유**: 이용객 수치는 복수 기사에서 일관되나 원출처(문체부/한국골프장경영협회 등) 원자료를 직접 확인하지 못했다. 프로 수입 서술은 익명 개인 SNS 게시글 1건이므로 일반화 불가 — 인터뷰로 교차검증 필요.\n- 전략 함의 3가지:\n  1. 가격을 월 3~5만원대로 잡는 기존 가정은 위험. 골프데스크 연 36만원(전체 CRM)이 현실적 천장 참고치.\n  2. 판매 대상을 아카데미/연습장 B2B로 이동시키면 \"프로 1명이 회원 1명 더 유지 = 월 20만원\"이라는 ROI 계산이 성립.\n  3. 시장 축소는 오히려 \"차별화가 필요한 프로\"의 동기를 키울 수도 있다 — 이 가설은 인터뷰로 확인 가치가 있음.\n- 확인필요: 국내 레슨프로 총수(KPGA/KLPGA 티칭 자격 보유자 수), 연습장 수 추이 원자료.", "body_html": "<h3>요약<\/h3><p>국내 골프 시장은 2022년 정점 이후 3년 연속 축소 중이고, 연습장 폐업과 레슨 단가 하락, 기본급 폐지가 동시에 진행 중이다. 개인 레슨프로의 지불여력 가정은 낙관적이며, 가설3은 이번 리서치에서 가장 약하게 지지된다.<\/p><h3>상세 노트<\/h3><ul><li>골프장 이용객: 2022년 5,058만명(정점) → 2023년 4,772만명 → 2024년 4,741만명 → 2025년 4,641만명(전년비 약 100만명, 2.1% 감소). 3년 연속 감소.<\/li><li>원인: 경기 침체, 고비용 부담(클럽·의류·그린피 인상), 해외 골프여행 증가, 2030세대 이탈.<\/li><li>전망: 2030년 골프인구 2025년 대비 1.3% 감소, 주력인 40~50대는 6.2% 감소 예상. 지방은 더 가파를 가능성.<\/li><li>연습장: 서울에서만 한 해 52곳 폐업, 특정 분기에 10곳 폐업 보도.<\/li><li>프로 처우(현직자 서술): 못 버는 사람 월 200만원대, 잘 버는 프로는 월 2,000만원 근접. \"레슨 단가는 이미 많이 내려서 더 못 내림\", \"많은 연습장이 프로 기본급을 없앰\", \"자격증 따고도 골프를 떠나 공장·아르바이트로 가는 사람들\".<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>confidence 확인필요 사유<\/strong>: 이용객 수치는 복수 기사에서 일관되나 원출처(문체부/한국골프장경영협회 등) 원자료를 직접 확인하지 못했다. 프로 수입 서술은 익명 개인 SNS 게시글 1건이므로 일반화 불가 — 인터뷰로 교차검증 필요.<\/li><li>전략 함의 3가지:<ol><li>가격을 월 3~5만원대로 잡는 기존 가정은 위험. 골프데스크 연 36만원(전체 CRM)이 현실적 천장 참고치.<\/li><li>판매 대상을 아카데미/연습장 B2B로 이동시키면 \"프로 1명이 회원 1명 더 유지 = 월 20만원\"이라는 ROI 계산이 성립.<\/li><li>시장 축소는 오히려 \"차별화가 필요한 프로\"의 동기를 키울 수도 있다 — 이 가설은 인터뷰로 확인 가치가 있음.<\/li><\/ol><\/li><li>확인필요: 국내 레슨프로 총수(KPGA/KLPGA 티칭 자격 보유자 수), 연습장 수 추이 원자료.<\/li><\/ul>", "slug": "국내_레슨프로_시장현실_지불여력"}, {"title": "스포츠과학 문헌 — 신체 특징으로 골퍼를 유형화할 수 있는가 (가설1 직접 검증)", "category": "니즈검증", "folder": "02_니즈검증", "filename": "스포츠과학_문헌_신체기반유형화_타당성.md", "relpath": "02_니즈검증/스포츠과학_문헌_신체기반유형화_타당성.md", "source_url": "https://pubmed.ncbi.nlm.nih.gov/19675474/", "source_type": "논문", "date_collected": "2026-09-12", "confidence": "확인필요", "target_customer": "N/A (문헌 검토)", "pricing": "N/A", "core_offering": "N/A", "strengths": ["신체 변인이 골프 퍼포먼스와 상관된다는 근거는 다수 존재 — 인체계측(어깨너비, 팔 길이), 하체·상체 근력이 클럽헤드 스피드와 유의한 연관", "저핸디캡 vs 고핸디캡 집단이 신체 변인으로 구분된다는 연구 존재 (저핸디캡: 클럽헤드 속도 12% 빠름, 우드촙 근력 28% 높음, 상완·전체 팔 길이 김)", "즉 '신체 데이터로 골퍼 집단을 구분한다'는 발상 자체는 문헌적으로 지지됨"], "weaknesses": ["결정적 반증: 최근 메타분석에서 **유연성(flexibility)은 클럽헤드 스피드와 통계적으로 유의하지 않은 사소한(trivial) 연관**으로 보고됨. 우리 가설1이 앞세운 '유연성' 축의 설명력이 약할 수 있음", "기존 연구 대부분이 '퍼포먼스(클럽헤드 스피드) 예측'이지 '티칭 방식 처방'이 아님 — 가설2로 가는 다리가 문헌에 없음", "핸디캡은 실력 구분이지 '유형' 구분이 아님. 우리가 원하는 것은 실력 축이 아닌 직교하는 유형 축인데 그 근거는 미확인", "골프 스윙 분류 관련 특허(swing trajectory 기반 계층 분류)는 존재하나 신체 기반이 아님"], "data_or_evidence_used": "JSCR 'Physical Determinants of Golf Swing Performance: A Review', PubMed 19675474 (Are anthropometric, flexibility, muscular strength, and endurance variables related to clubhead velocity in low- and high-handicap golfers?), 'Associations Between Physical Characteristics and Golf Clubhead Speed: A Systematic Review with Meta-Analysis', Springer 'Movement Analysis of the Golf Swing'", "relevance_to_us": "가설1의 유일한 객관적 검증 경로. 결론: 부분 지지 + 중요한 단서.", "differentiation_gap": "문헌은 '신체 → 퍼포먼스'는 말하지만 '신체 → 유형 → 최적 티칭법'은 말하지 않는다. 이 마지막 연결고리가 우리 제품의 지적 자산이자 동시에 최대 미검증 리스크.", "tags": ["니즈검증", "문헌", "가설1", "리스크", "확인필요"], "summary": "신체 변인이 골프 퍼포먼스와 연결된다는 문헌 근거는 충분하지만, (a) 유연성의 설명력은 최신 메타분석에서 약하게 나왔고, (b) '유형화 → 티칭 처방'이라는 우리 핵심 연결고리를 직접 검증한 연구는 확인되지 않았다. 가설1은 \"부분적으로 지지, 핵심 부분은 미검증\".", "judgement": "- **가설1을 즉시 수정할 것**: \"유연성·체형·근력·관절가동범위\"를 동급으로 나열하면 안 된다. 근력·인체계측은 근거가 있고 유연성은 근거가 약하다. 유연성을 핵심 축으로 쓰려면 별도 근거가 필요하다.\n- 다만 반론 여지: 메타분석은 '클럽헤드 스피드'라는 단일 출력만 봤다. 우리가 관심 있는 출력은 속도가 아니라 '어떤 티칭이 이 사람에게 먹히는가'이며, 이 출력에 대한 연구는 사실상 없다. 즉 반증도 아니고 지지도 아닌 공백.\n- confidence 확인필요 사유: 개별 논문 원문(전문)을 열람하지 않고 초록·요약·리뷰 인용 수준에서 정리했다. 사업 의사결정 근거로 쓰려면 최소 메타분석 1편 전문 확인 필요.\n- 다음 액션: TPI가 12 swing characteristics ↔ 16 screens 상관을 어떤 데이터로 주장하는지(내부 데이터인지, 피어리뷰 논문인지) 추적. 이게 우리 가설2의 실질적 근거 수준을 결정한다.", "body_html": "<h3>요약<\/h3><p>신체 변인이 골프 퍼포먼스와 연결된다는 문헌 근거는 충분하지만, (a) 유연성의 설명력은 최신 메타분석에서 약하게 나왔고, (b) '유형화 → 티칭 처방'이라는 우리 핵심 연결고리를 직접 검증한 연구는 확인되지 않았다. 가설1은 \"부분적으로 지지, 핵심 부분은 미검증\".<\/p><h3>상세 노트<\/h3><ul><li>인체계측·균형·심폐능력 + 근력/파워/근건 특성/유연성이 클럽헤드 스피드와 캐리에 영향 (리뷰).<\/li><li>어깨너비가 넓으면 안정성과 레버리지 향상, 고관절·대퇴 둘레는 근육량·근력과 양의 상관.<\/li><li>저핸디캡 vs 고핸디캡: 클럽헤드 속도 12%↑, 골프 특이적 케이블 우드촙 근력 28%↑, 상완 및 전체 팔 길이 김.<\/li><li><strong>메타분석<\/strong>: 클럽헤드 스피드와 하체 근력·상체 근력·인체계측은 유의한 연관, <strong>유연성은 trivial, 비유의<\/strong>.<\/li><li>스윙 궤적 특징을 추출해 스윙 타입을 계층적으로 분류하는 특허 기술 존재(신체 기반 아님).<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>가설1을 즉시 수정할 것<\/strong>: \"유연성·체형·근력·관절가동범위\"를 동급으로 나열하면 안 된다. 근력·인체계측은 근거가 있고 유연성은 근거가 약하다. 유연성을 핵심 축으로 쓰려면 별도 근거가 필요하다.<\/li><li>다만 반론 여지: 메타분석은 '클럽헤드 스피드'라는 단일 출력만 봤다. 우리가 관심 있는 출력은 속도가 아니라 '어떤 티칭이 이 사람에게 먹히는가'이며, 이 출력에 대한 연구는 사실상 없다. 즉 반증도 아니고 지지도 아닌 공백.<\/li><li>confidence 확인필요 사유: 개별 논문 원문(전문)을 열람하지 않고 초록·요약·리뷰 인용 수준에서 정리했다. 사업 의사결정 근거로 쓰려면 최소 메타분석 1편 전문 확인 필요.<\/li><li>다음 액션: TPI가 12 swing characteristics ↔ 16 screens 상관을 어떤 데이터로 주장하는지(내부 데이터인지, 피어리뷰 논문인지) 추적. 이게 우리 가설2의 실질적 근거 수준을 결정한다.<\/li><\/ul>", "slug": "스포츠과학_문헌_신체기반유형화_타당성"}, {"title": "해외 골프 교습 커뮤니티 담론 — '학생마다 다르다'는 합의와 그 이면", "category": "니즈검증", "folder": "02_니즈검증", "filename": "티칭프로_커뮤니티_페인포인트_해외.md", "relpath": "02_니즈검증/티칭프로_커뮤니티_페인포인트_해외.md", "source_url": "https://golfwrx.com/603770/golf-instruction-what-is-it/1000/", "source_type": "커뮤니티글", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "골프 티칭프로 (해외, 영어권)", "pricing": "N/A", "core_offering": "N/A (담론 조사)", "strengths": ["'표준 티칭법 같은 건 없고 학생마다 달라야 한다'는 명제가 업계 내 상식으로 공유됨 — 우리 문제의식의 전제는 부정되지 않음", "교습가들의 공통 좌절로 '학생이 나쁜 조언/자가진단에 휩쓸려 자신감을 잃는 것'이 반복 언급됨"], "weaknesses": ["'학생마다 달라야 한다'는 합의가 곧 '체계적 분류 도구가 필요하다'로 이어지지는 않음. 오히려 '스윙은 눈송이처럼 다 다르다 = 분류 불가'라는 반대 방향 논거로도 쓰임", "교습가 정체성이 '개인의 안목'에 걸려 있어, 유형 분류 도구를 자기 전문성 격하로 받아들일 가능성", "표본이 공개 포럼 글 — 발화자 대표성 낮음, 정량 근거 아님"], "data_or_evidence_used": "GolfWRX 'Golf instruction: What is it?' 스레드, GolfWRX '7 different golf instructors' 칼럼, USGTF 칼럼", "relevance_to_us": "가설2에 대한 양가적 근거. 그리고 가설3에 대한 경고 신호.", "differentiation_gap": "핵심 인용: '골프 스윙은 눈송이 같아서 똑같은 게 없다' — 이 문장이 우리 가설1의 최대 반대 논거다. 우리는 '완전히 같지 않다'와 '유의미하게 묶을 수 없다'가 다른 말임을 데이터로 보여야 한다.", "tags": ["니즈검증", "커뮤니티", "페인포인트", "반대근거", "해외"], "summary": "\"학생마다 가르치는 법이 달라야 한다\"는 것은 교습 업계의 상식이다. 그러나 같은 커뮤니티에서 그 상식은 \"그러니 분류는 불가능하고 결국 교습가의 안목 문제\"라는 결론으로 이어지는 경우가 많다. 즉 페인포인트는 존재하지만, 그것이 '도구로 풀 문제'로 인식되고 있다는 증거는 아직 없다.", "judgement": "- **주의**: 이 조사는 원래 목표였던 \"국내 프로 커뮤니티/카페/오픈채팅의 1차 발화\"를 확보하지 못했다. 네이버 카페·오픈채팅은 검색엔진에 잡히지 않아 공개 검색으로는 도달 불가. 따라서 **국내 페인포인트는 이번 리서치로 검증되지 않았고, 인터뷰로 직접 확인해야 한다.** (→ [[interview_questions_draft]])\n- 가장 중요한 관찰: 업계는 이 문제를 \"역량/경험의 문제\"로 프레이밍하지 \"정보 도구의 문제\"로 프레이밍하지 않는다. 우리가 팔려면 이 프레이밍 자체를 바꿔야 하며, 그건 비싼 마케팅이다.", "body_html": "<h3>요약<\/h3><p>\"학생마다 가르치는 법이 달라야 한다\"는 것은 교습 업계의 상식이다. 그러나 같은 커뮤니티에서 그 상식은 \"그러니 분류는 불가능하고 결국 교습가의 안목 문제\"라는 결론으로 이어지는 경우가 많다. 즉 페인포인트는 존재하지만, 그것이 '도구로 풀 문제'로 인식되고 있다는 증거는 아직 없다.<\/p><h3>상세 노트<\/h3><ul><li>\"같은 교습가라도 다음 학생에게는 완전히 다른 것을 가르칠 것이고, 또 그래야 한다.\"<\/li><li>\"골프 스윙은 눈송이 같아서 두 개가 같지 않다. 그러니 교습은 학생마다 달라야 한다.\"<\/li><li>\"하나의 스윙 문제는 여러 원인에서 올 수 있고, 교습가마다 어느 원인부터 공략할지 선호가 다르며 드릴·교구도 다르다.\" → <strong>원인 우선순위 판단이 속인화되어 있다<\/strong>는 서술. 우리 제품의 타깃 지점.<\/li><li>\"모든 교습가가 공유하는 좌절: 학생이 잘못된 조언이나 잘못된 자기진단에 휩쓸려 자신감을 완전히 잃는 것.\"<\/li><li>교습가-학생 궁합 이슈(\"서로 안 맞는 경우가 있다\")도 반복 언급.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>주의<\/strong>: 이 조사는 원래 목표였던 \"국내 프로 커뮤니티/카페/오픈채팅의 1차 발화\"를 확보하지 못했다. 네이버 카페·오픈채팅은 검색엔진에 잡히지 않아 공개 검색으로는 도달 불가. 따라서 <strong>국내 페인포인트는 이번 리서치로 검증되지 않았고, 인터뷰로 직접 확인해야 한다.<\/strong> (→ <a class=\"xref\" href=\"#\" data-note=\"interview_questions_draft\">interview_questions_draft<\/a>)<\/li><li>가장 중요한 관찰: 업계는 이 문제를 \"역량/경험의 문제\"로 프레이밍하지 \"정보 도구의 문제\"로 프레이밍하지 않는다. 우리가 팔려면 이 프레이밍 자체를 바꿔야 하며, 그건 비싼 마케팅이다.<\/li><\/ul>", "slug": "티칭프로_커뮤니티_페인포인트_해외"}, {"title": "Fitbod — 데이터 기반 적응형 개인 운동 처방 (알고리즘 단독 모델)", "category": "인접산업", "folder": "03_인접산업", "filename": "Fitbod_적응형_운동처방_알고리즘.md", "relpath": "03_인접산업/Fitbod_적응형_운동처방_알고리즘.md", "source_url": "https://fitbod.me/blog/how-fitbod-personalizes-your-workout-plan-using-smart-training-algorithms/", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "B2C 개인 웨이트 트레이닝 이용자", "pricing": "7일 무료체험 후 월 $15.99 / 연 $95.99", "core_offering": "사용자의 수행 이력(세트·횟수·중량·운동강도·결석일), 근육군별 회복 상태, 보유 장비를 입력으로 매 세션의 운동 처방을 자동 생성·조정.", "strengths": ["사람 트레이너 없이 알고리즘만으로 연 $95.99 구독을 성립시킴 — '자동 처방'의 지불의향 존재 증명", "입력이 사용자의 자연스러운 행동(운동 기록)에서 자동으로 나옴 — 별도 진단 입력 부담이 거의 없음", "처방이 매 세션 갱신되어 '계속 쓸 이유'가 구조적으로 생김"], "weaknesses": ["초기 신체 평가가 아니라 누적 수행 데이터에 의존 — 콜드스타트 구간의 개인화는 약함", "결과(근력 향상) 대비 효과의 독립적 검증은 확인되지 않음", "B2C 피트니스 앱 시장 자체가 리텐션이 악명 높게 낮음 (구체 수치 확인필요)"], "data_or_evidence_used": "Fitbod 공식 블로그(알고리즘 설명), 복수 리뷰 사이트의 가격 기재, Fast Company AI 피트니스 앱 정리 기사", "relevance_to_us": "가설3에 대한 긍정 근거이자, 제품 설계에 대한 핵심 구조 교훈.", "differentiation_gap": "Fitbod는 '진단'을 하지 않는다. 행동 데이터가 알아서 쌓이게 만들고 거기서 처방을 뽑는다. 우리는 '수강생 신체 정보 입력'이라는 별도 노동을 요구하는데, 이건 Fitbod 대비 명백한 마찰이다.", "tags": ["인접산업", "피트니스", "알고리즘", "구독", "B2C", "제품설계교훈"], "summary": "사람 없이 알고리즘만으로 개인 맞춤 처방을 팔아 연 $95.99 구독을 성립시킨 사례. 핵심 설계 교훈은 \"진단을 위한 별도 입력을 요구하지 않고, 사용자가 어차피 하는 행동에서 데이터를 얻는다\"는 점이다.", "judgement": "- **우리 제품 설계에 주는 가장 날카로운 질문**: \"프로가 수강생 신체 정보를 입력할 유인이 있는가?\" Fitbod는 이 질문을 회피하는 설계를 택했다. 우리도 회피 경로를 찾아야 한다 — 예: 레슨 일지를 어차피 쓰는 골프데스크 같은 툴에 얹어서, 프로가 평소 남기는 기록만으로 유형이 추정되게 하는 방향. ([[국내_골프레슨_관리SaaS_골프데스크_구스트]] 파트너 전략과 연결)\n- 가격 앵커: 개인 대상 자동 처방 도구의 글로벌 수용 가격은 연 10만원 내외. [[SportsboxAI_3DGolf]]의 $110/년과도 거의 일치. 국내 프로 대상이면 이보다 낮게 잡는 게 안전.\n- 확인필요: B2C 피트니스 앱 평균 리텐션 수치 — 우리 구독 모델 가정에 직접 영향.", "body_html": "<h3>요약<\/h3><p>사람 없이 알고리즘만으로 개인 맞춤 처방을 팔아 연 $95.99 구독을 성립시킨 사례. 핵심 설계 교훈은 \"진단을 위한 별도 입력을 요구하지 않고, 사용자가 어차피 하는 행동에서 데이터를 얻는다\"는 점이다.<\/p><h3>상세 노트<\/h3><ul><li>입력: 로그된 세트·횟수·중량·장비·운동강도(exertion)·결석일.<\/li><li>모델링: 근육군별 '신선도(freshness)' 추적, 특정 중량·횟수를 숙달하면 자동으로 난이도 상향, 보유 장비 인지.<\/li><li>가격: 월 $15.99 / 연 $95.99 (7일 무료체험).<\/li><li>비교: Freeletics는 맨몸 HIIT 중심, Fitbod는 장비 인지형 점진적 근력 훈련에 특화.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>우리 제품 설계에 주는 가장 날카로운 질문<\/strong>: \"프로가 수강생 신체 정보를 입력할 유인이 있는가?\" Fitbod는 이 질문을 회피하는 설계를 택했다. 우리도 회피 경로를 찾아야 한다 — 예: 레슨 일지를 어차피 쓰는 골프데스크 같은 툴에 얹어서, 프로가 평소 남기는 기록만으로 유형이 추정되게 하는 방향. (<a class=\"xref\" href=\"#\" data-note=\"국내_골프레슨_관리SaaS_골프데스크_구스트\">국내_골프레슨_관리SaaS_골프데스크_구스트<\/a> 파트너 전략과 연결)<\/li><li>가격 앵커: 개인 대상 자동 처방 도구의 글로벌 수용 가격은 연 10만원 내외. <a class=\"xref\" href=\"#\" data-note=\"SportsboxAI_3DGolf\">SportsboxAI_3DGolf<\/a>의 $110/년과도 거의 일치. 국내 프로 대상이면 이보다 낮게 잡는 게 안전.<\/li><li>확인필요: B2C 피트니스 앱 평균 리텐션 수치 — 우리 구독 모델 가정에 직접 영향.<\/li><\/ul>", "slug": "Fitbod_적응형_운동처방_알고리즘"}, {"title": "SwingVision — 테니스 AI 코칭 앱 (타 스포츠 자세·샷 분석 코칭)", "category": "인접산업", "folder": "03_인접산업", "filename": "SwingVision_테니스_AI코칭.md", "relpath": "03_인접산업/SwingVision_테니스_AI코칭.md", "source_url": "https://apps.apple.com/us/app/swingvision-tennis-pickleball/id989461317", "source_type": "공식홈페이지", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "테니스·피클볼 플레이어 (B2C), 일부 코치", "pricing": "무료(월 2시간 영상 분석) / Pro 월 $14.99 또는 연 $179.99", "core_offering": "아이폰 카메라만으로 샷을 실시간 추적, 자동 통계·스코어보드 오버레이, 하이라이트 생성, 세션 후 개인화된 코칭 조언 제공, 주간 목표 설정 및 추적.", "strengths": ["장비 없이 스마트폰 하나로 시작 — 진입 마찰 최소화", "코칭 조언보다 '자동 스코어보드·하이라이트'라는 즉각적 재미가 먼저 훅으로 작동 → 코칭은 부가가치로 얹힘", "연 $179.99로 우리가 본 개인화 코칭 앱 중 가장 높은 가격대 성립", "무료 티어를 '월 2시간'이라는 사용량 제한으로 설계 — 기능 제한보다 전환율이 높은 방식"], "weaknesses": ["신체적 특징 입력이나 유형 분류는 전혀 없음 — 순수 수행 데이터 기반", "코치용 도구가 아니라 플레이어용 도구 (B2C)", "테니스는 랠리·경기 데이터가 자동으로 풍부하게 나오지만, 골프 레슨장 스윙 반복에는 같은 '경기 재미' 훅이 없음"], "data_or_evidence_used": "App Store 공식 페이지, MWM 앱 소개, 다수 리뷰 사이트의 가격 기재", "relevance_to_us": "가설3의 상단 가격 참고점, 그리고 '무엇이 진짜 훅인가'에 대한 교훈.", "differentiation_gap": "SwingVision이 성공한 이유는 코칭 조언이 아니라 자동 기록·하이라이트라는 즉각 보상이다. 우리 제품에는 그런 즉각 보상이 없다 — 유형 분류 결과는 재미도 없고 즉시 검증도 안 된다. 이 공백을 무엇으로 메울지가 미해결 과제.", "tags": ["인접산업", "테니스", "AI분석", "구독", "가격참고", "제품설계교훈"], "summary": "스마트폰만으로 샷을 추적해 통계·하이라이트·개인 코칭을 제공하고 연 $179.99 구독을 성립시킨 사례. 배울 점은 가격대보다도 \"코칭이 아니라 즉각적 재미가 훅\"이라는 구조다.", "judgement": "- **가격 스펙트럼 정리** (이번 리서치 종합):\n  - Fitbod 연 약 $96 / Sportsbox AI 연 약 $110 / SwingVision 연 약 $180 — 개인 대상 AI 코칭 앱은 연 10~20만원대.\n  - 골프데스크 연 36만원 — 국내 B2B 운영 소프트웨어.\n  - TrackMan TPS 연 약 $1,100 — 전문 장비 소프트웨어.\n  - → 우리가 국내 프로 개인에게 팔 경우 현실적 상한은 연 10~20만원대, 즉 **월 1~2만원**. 이 수치로 사업이 성립하는지 역산해볼 것.\n- 훅 문제는 진지하게 다뤄야 한다. 우리 제품의 \"첫 5분 감동\"이 무엇인지 아직 없다. 후보: 수강생에게 바로 보여줄 수 있는 진단 리포트(수강생이 사진 찍어 공유할 만한 것) → 이러면 실질 사용자는 프로지만 감동 주체는 수강생이 되고, [[캐치필라테스_토마토시스템_AI체형분석_구독]]의 B2C 지불 경로와도 연결된다.", "body_html": "<h3>요약<\/h3><p>스마트폰만으로 샷을 추적해 통계·하이라이트·개인 코칭을 제공하고 연 $179.99 구독을 성립시킨 사례. 배울 점은 가격대보다도 \"코칭이 아니라 즉각적 재미가 훅\"이라는 구조다.<\/p><h3>상세 노트<\/h3><ul><li>기능: 샷 속도·깊이·정확도·랠리 길이 추적, 영상 위 자동 통계·스코어보드, 데드타임 제거 및 하이라이트 생성, 세션별 개인화 코칭, 주간 목표 설정.<\/li><li>가격: 무료 티어는 월 2시간 영상 분석 + 기본 통계. Pro $14.99/월 또는 $179.99/년.<\/li><li>방식: 카메라와 내장 칩으로 실시간 샷 트래킹 후 개인화 리포트.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>가격 스펙트럼 정리<\/strong> (이번 리서치 종합):<ul><li>Fitbod 연 약 $96 / Sportsbox AI 연 약 $110 / SwingVision 연 약 $180 — 개인 대상 AI 코칭 앱은 연 10~20만원대.<\/li><li>골프데스크 연 36만원 — 국내 B2B 운영 소프트웨어.<\/li><li>TrackMan TPS 연 약 $1,100 — 전문 장비 소프트웨어.<\/li><li>→ 우리가 국내 프로 개인에게 팔 경우 현실적 상한은 연 10~20만원대, 즉 <strong>월 1~2만원<\/strong>. 이 수치로 사업이 성립하는지 역산해볼 것.<\/li><\/ul><\/li><li>훅 문제는 진지하게 다뤄야 한다. 우리 제품의 \"첫 5분 감동\"이 무엇인지 아직 없다. 후보: 수강생에게 바로 보여줄 수 있는 진단 리포트(수강생이 사진 찍어 공유할 만한 것) → 이러면 실질 사용자는 프로지만 감동 주체는 수강생이 되고, <a class=\"xref\" href=\"#\" data-note=\"캐치필라테스_토마토시스템_AI체형분석_구독\">캐치필라테스_토마토시스템_AI체형분석_구독<\/a>의 B2C 지불 경로와도 연결된다.<\/li><\/ul>", "slug": "SwingVision_테니스_AI코칭"}, {"title": "물리치료 TBC(Treatment-Based Classification) — 유형 분류 기반 처방의 20년 실험 결과", "category": "인접산업", "folder": "03_인접산업", "filename": "물리치료_TBC_요통분류체계.md", "relpath": "03_인접산업/물리치료_TBC_요통분류체계.md", "source_url": "https://www.jospt.org/doi/10.2519/jospt.2022.10761", "source_type": "논문", "date_collected": "2026-09-12", "confidence": "확인됨", "target_customer": "물리치료사, 1차 진료 의료진", "pricing": "N/A (임상 프로토콜)", "core_offering": "요통 환자를 검사 결과에 따라 방향특이적 운동 / 도수치료(manipulation) / 안정화 운동 등 하위군으로 분류하고, 각 군에 맞는 치료를 매칭하는 체계.", "strengths": ["임상가 경력·전문성과 무관하게 중등도~양호한 검사자간 신뢰도 확보 — 분류 체계가 재현 가능함을 보여줌", "초기 대규모 RCT 2건에서 임상 결과 개선과 의료비 절감이 보고됨", "20년 이상 개정을 거치며 발전(2016년 PTJ 개정판, 2017년 movement control 접근 추가)"], "weaknesses": ["**결정적 반전: 2022년 JOSPT 메타분석 결론 — 분류 기반 접근의 효과는 작고 임상적으로 유의미하지 않다.** 일반적인 능동 운동/혼합 중재가 더 비싸고 시간·기술이 많이 드는 분류 기반 접근과 유사한 효능을 보임", "즉 '분류는 신뢰성 있게 되지만, 분류대로 치료해도 결과가 크게 나아지지 않는다'는 것이 현재 근거 수준"], "data_or_evidence_used": "JOSPT 2022 systematic review with meta-analysis, Physical Therapy(Oxford) 2016 TBC 개정판, JOSPT 2012 신뢰도 연구, J Manual & Manipulative Therapy 2022 메타분석, BMC 비용효과 RCT 프로토콜", "relevance_to_us": "가설1·가설2 전체에 대한 가장 값진 경고. 우리와 구조가 거의 동일한(신체 평가 → 유형 분류 → 유형별 처방) 체계가 의료라는 훨씬 엄격한 영역에서 20년간 검증된 결과다.", "differentiation_gap": "차별화 논점이 아니라 리스크 논점. '분류가 가능하다(가설1)'와 '분류대로 가르치면 더 좋아진다(가설2의 실질)'는 완전히 다른 명제이며, 전자가 참이어도 후자는 거짓일 수 있다는 실증 사례.", "tags": ["인접산업", "물리치료", "분류체계", "실패사례", "리스크", "필독"], "summary": "요통 물리치료의 TBC는 우리 사업 구조의 의료판 쌍둥이다. 결론은 냉정하다 — 분류는 안정적으로 되지만, 분류 기반 치료가 일반 운동치료보다 임상적으로 의미 있게 낫지는 않았다. 이 카테고리에서 가장 중요한 노트.", "judgement": "- **우리 사업에 주는 3가지 교훈**\n  1. *분류 가능성 ≠ 처방 효과.* 가설1이 참이어도 가설2의 \"효과적인 티칭 방식이 유형별로 존재한다\"는 별도 증명이 필요하다. 우리는 이 둘을 한 문장에 묶어 놓았고, 그건 위험하다.\n  2. *비용 대비 효과가 관건.* 메타분석의 핵심 비판은 \"효과는 비슷한데 분류는 더 비싸고 오래 걸린다\"였다. 우리 제품이 프로에게 수강생당 10분을 더 쓰게 만든다면 같은 비판을 받는다. → **입력 시간 최소화가 제품의 생사를 가르는 요구사항**.\n  3. *그럼에도 TBC는 여전히 교육·인증 상품으로 팔린다.* 효과 근거가 약해도 시장은 존재한다. 냉소적이지만 사업적으로는 의미 있는 관찰.\n- 우리가 취할 수 있는 정직한 포지션: \"더 좋은 결과를 보장한다\"가 아니라 \"경험 없는 프로가 베테랑의 판단 순서를 따라할 수 있게 한다\"(= 성과 향상이 아니라 **분산 축소와 온보딩 속도**). 이건 근거 부담이 훨씬 가볍다.", "body_html": "<h3>요약<\/h3><p>요통 물리치료의 TBC는 우리 사업 구조의 의료판 쌍둥이다. 결론은 냉정하다 — 분류는 안정적으로 되지만, 분류 기반 치료가 일반 운동치료보다 임상적으로 의미 있게 낫지는 않았다. 이 카테고리에서 가장 중요한 노트.<\/p><h3>상세 노트<\/h3><ul><li>체계: 환자를 방향특이적 운동 / 도수치료 / 안정화 운동 하위군으로 분류. 이후 신경 민감도 → 관절·연부조직 가동성 → 운동조절 → 지구력 순으로 치료 우선순위를 두는 방식으로 발전.<\/li><li>신뢰도(JOSPT 2012): 임상가 경력·전문성과 무관하게 검사자간 신뢰도 중등도~양호.<\/li><li>초기 근거: 대규모 RCT 2건에서 임상 결과 개선 및 의료비 감소.<\/li><li><strong>2022 JOSPT 메타분석<\/strong>: \"분류 접근법은 작고 임상적으로 유의미하지 않은 효과를 보인다.\" 통증 강도·기능장애 감소에서 현재 분류 체계의 임상적 사용을 지지하는 근거는 제한적. 일반 능동/혼합 중재가 유사한 효능.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>우리 사업에 주는 3가지 교훈<\/strong><ol><li><em>분류 가능성 ≠ 처방 효과.<\/em> 가설1이 참이어도 가설2의 \"효과적인 티칭 방식이 유형별로 존재한다\"는 별도 증명이 필요하다. 우리는 이 둘을 한 문장에 묶어 놓았고, 그건 위험하다.<\/li><li><em>비용 대비 효과가 관건.<\/em> 메타분석의 핵심 비판은 \"효과는 비슷한데 분류는 더 비싸고 오래 걸린다\"였다. 우리 제품이 프로에게 수강생당 10분을 더 쓰게 만든다면 같은 비판을 받는다. → <strong>입력 시간 최소화가 제품의 생사를 가르는 요구사항<\/strong>.<\/li><li><em>그럼에도 TBC는 여전히 교육·인증 상품으로 팔린다.<\/em> 효과 근거가 약해도 시장은 존재한다. 냉소적이지만 사업적으로는 의미 있는 관찰.<\/li><\/ol><\/li><li>우리가 취할 수 있는 정직한 포지션: \"더 좋은 결과를 보장한다\"가 아니라 \"경험 없는 프로가 베테랑의 판단 순서를 따라할 수 있게 한다\"(= 성과 향상이 아니라 <strong>분산 축소와 온보딩 속도<\/strong>). 이건 근거 부담이 훨씬 가볍다.<\/li><\/ul>", "slug": "물리치료_TBC_요통분류체계"}, {"title": "바디닷(Bodydot) — AI 체형분석기, 신체 스캔 → 맞춤 운동 추천 B2B", "category": "인접산업", "folder": "03_인접산업", "filename": "바디닷_AI체형분석기.md", "relpath": "03_인접산업/바디닷_AI체형분석기.md", "source_url": "https://magazine.hankyung.com/job-joy/article/202512290594d", "source_type": "기사", "date_collected": "2026-09-12", "confidence": "확인필요", "target_customer": "필라테스·요가 스튜디오, 피트니스센터, 족부교정센터 등 B2B", "pricing": "확인필요 (하드웨어 판매 또는 구독 여부 미확인)", "core_offering": "30초~1분 내 정면·측면·오버헤드 스쿼트·유연성 검사 등 체형 검사를 수행하고 거북목·골반전방경사·O다리 등 불균형을 진단, 맞춤 운동 추천까지 연결.", "strengths": ["'스캔 한 번 → 진단 → 맞춤 운동 추천'이라는 우리와 동일한 파이프라인을 이미 상품화", "CES 2025 체형분석기 부문 최초 Fitness 혁신상 수상 — 대외 검증 시그널", "측정 시간 30초~1분: 현장 워크플로우에 끼워넣을 수 있는 수준으로 마찰을 줄임 (우리가 반드시 벤치마킹할 지표)", "B2B 판매 — 개인이 아니라 스튜디오가 결제. 지불여력 문제를 우회한 구조"], "weaknesses": ["진단은 '체형 불균형' 중심이라 스포츠 기술 수행(스윙 등)과의 연결은 다루지 않음", "추천 운동의 근거 수준(문헌 기반인지 자체 룰인지) 확인필요", "하드웨어 의존 — 도입 장벽이 소프트웨어보다 큼"], "data_or_evidence_used": "한경매거진 job&joy 기사, 나무위키 항목, AI타임스 기사(토마토시스템-캐치필라테스 협력)", "relevance_to_us": "가설1·2·3 전부와 구조적으로 대응. 특히 가설3: 이 모델은 개인이 아닌 '센터'가 지불한다는 점에서 우리 B2B 전환 논거를 뒷받침.", "differentiation_gap": "이들은 '체형 불균형 교정'이라는 범용 문제를 푼다. 골프는 '스윙이라는 특정 과제 수행'이 목표라 훨씬 좁고 깊다. 갭은 도메인 깊이. 반대로 이들이 골프 모듈을 붙이는 것도 충분히 가능함 — 잠재적 경쟁 진입 경로.", "tags": ["인접산업", "체형분석", "B2B", "하드웨어", "벤치마크", "국내"], "summary": "신체 스캔 → 자동 진단 → 맞춤 운동 추천이라는 우리 컨셉이 피트니스 영역에서 이미 국내 상품으로 존재하고 CES 혁신상까지 받았다. 측정 30초~1분, B2B 판매라는 두 가지 설계 선택이 특히 시사적이다.", "judgement": "- **가장 실행에 바로 쓸 수 있는 교훈: 측정 시간 1분.** 우리 MVP도 \"수강생 1명 입력 1분\" 을 설계 제약으로 못박아야 한다. ([[물리치료_TBC_요통분류체계]]의 비용 대비 효과 교훈과 같은 방향)\n- 하드웨어 없이 프로가 눈으로 보고 체크하는 방식이면 1분 안에 가능. 정밀도를 버리고 속도를 사는 선택이 맞다고 본다.\n- confidence 확인필요: 가격, 실제 도입 스튜디오 수, 추천 알고리즘 근거 모두 미확인.", "body_html": "<h3>요약<\/h3><p>신체 스캔 → 자동 진단 → 맞춤 운동 추천이라는 우리 컨셉이 피트니스 영역에서 이미 국내 상품으로 존재하고 CES 혁신상까지 받았다. 측정 30초~1분, B2B 판매라는 두 가지 설계 선택이 특히 시사적이다.<\/p><h3>상세 노트<\/h3><ul><li>측정 항목: 정면·측면 체형, 오버헤드 스쿼트, 유연성 검사. 소요 30초~1분.<\/li><li>진단 대상: 거북목, 골반전방경사, O다리 등.<\/li><li>고객: 요가·필라테스, 피트니스, 족부교정센터.<\/li><li>유사 사례: AI 자세분석 앱 POCO(스마트폰 정면·측면 촬영 → 자동 분석), I POSTURE 앱, 자세AI 등 국내에 다수 존재 — 이 영역은 이미 경쟁적.<\/li><\/ul><h3>판단 메모<\/h3><ul><li><strong>가장 실행에 바로 쓸 수 있는 교훈: 측정 시간 1분.<\/strong> 우리 MVP도 \"수강생 1명 입력 1분\" 을 설계 제약으로 못박아야 한다. (<a class=\"xref\" href=\"#\" data-note=\"물리치료_TBC_요통분류체계\">물리치료_TBC_요통분류체계<\/a>의 비용 대비 효과 교훈과 같은 방향)<\/li><li>하드웨어 없이 프로가 눈으로 보고 체크하는 방식이면 1분 안에 가능. 정밀도를 버리고 속도를 사는 선택이 맞다고 본다.<\/li><li>confidence 확인필요: 가격, 실제 도입 스튜디오 수, 추천 알고리즘 근거 모두 미확인.<\/li><\/ul>", "slug": "바디닷_AI체형분석기"}, {"title": "캐치 필라테스 × 토마토시스템 — AI 체형분석 + 강사 1:1 피드백 구독 모델", "category": "인접산업", "folder": "03_인접산업", "filename": "캐치필라테스_토마토시스템_AI체형분석_구독.md", "relpath": "03_인접산업/캐치필라테스_토마토시스템_AI체형분석_구독.md", "source_url": "https://www.aitimes.com/news/articleView.html?idxno=200252", "source_type": "기사", "date_collected": "2026-09-12", "confidence": "확인필요", "target_customer": "필라테스 수강생(B2C 구독) 및 이를 운영하는 스튜디오", "pricing": "정기 구독형 모바일 앱 (구체적 금액 확인필요)", "core_offering": "AI 체형 분석 + 개인 맞춤 운동 프로그램 + 필라테스 전문 강사의 1:1 피드백 + 셀프 필라테스 운동을 정기 구독형 앱으로 묶음.", "strengths": ["**AI 자동 분석과 사람 강사의 1:1 피드백을 한 상품에 결합** — 'AI만으로는 신뢰가 안 된다'는 문제를 하이브리드로 해결한 설계", "구독형이라 반복 매출. 1회성 진단이 아니라 지속 관계로 만듦", "IT 기업(토마토시스템)과 도메인 사업자(캐치 필라테스)의 협력 구조 — 기술과 콘텐츠를 각자 댐"], "weaknesses": ["협력 발표 기반 정보라 실제 출시·성과·리텐션은 미확인", "AI 분석의 정확도가 낮으면 강사 피드백이 전부를 떠안게 되어 단가 구조가 무너짐"], "data_or_evidence_used": "AI타임스 보도자료성 기사 1건", "relevance_to_us": "가설2·3. 특히 '자동 분류의 신뢰도 부족'이라는 우리 최대 제품 리스크를 시장이 어떻게 우회하는지를 보여주는 사례.", "differentiation_gap": "우리 서비스에도 같은 하이브리드가 필요할 수 있다. 즉 '유형 자동 판정'을 최종 답으로 내놓지 말고 '프로가 검토·수정하는 초안'으로 내놓는 UX. 인터뷰 16번 문항(판정이 본인 판단과 다르면?)과 직결.", "tags": ["인접산업", "필라테스", "구독", "하이브리드", "AI신뢰도", "국내"], "summary": "AI 체형분석을 단독 상품이 아니라 '강사 1:1 피드백과 묶은 구독'으로 판매하는 사례. AI 판정의 신뢰도 한계를 사람으로 메우는 구조이며, 우리 제품 UX 설계에 직접 적용 가능한 패턴이다.", "judgement": "- 우리 사업에 대응시키면: 우리는 \"프로를 대체하는 AI\"가 아니라 \"프로의 판단을 구조화해주는 초안 생성기\"다. 이 포지션이면 [[티칭프로_커뮤니티_페인포인트_해외]]에서 확인된 '전문성 격하 거부감' 리스크도 함께 낮춘다.\n- 다만 반대 방향 시사점도 있다: 필라테스는 **최종 소비자(수강생)가 구독료를 낸다.** 우리도 지불 주체를 프로가 아니라 수강생으로 두는 설계(프로가 발급하는 수강생용 리포트/앱)를 검토할 가치가 있다. 이건 [[국내_레슨프로_시장현실_지불여력]]의 지불여력 문제를 근본적으로 우회하는 유일한 경로일 수 있다.\n- confidence 확인필요: 실제 서비스 출시 여부, 구독가, 사용자 규모 전부 미확인 (보도자료 1건에만 의존).", "body_html": "<h3>요약<\/h3><p>AI 체형분석을 단독 상품이 아니라 '강사 1:1 피드백과 묶은 구독'으로 판매하는 사례. AI 판정의 신뢰도 한계를 사람으로 메우는 구조이며, 우리 제품 UX 설계에 직접 적용 가능한 패턴이다.<\/p><h3>상세 노트<\/h3><ul><li>구성 요소: ① AI 체형 분석 ② 개인 맞춤 운동 프로그램 ③ 전문 강사 1:1 피드백 ④ 셀프 운동 ⑤ 정기 구독형 모바일 앱.<\/li><li>구도: IT 솔루션 기업 + 필라테스 브랜드의 협업.<\/li><\/ul><h3>판단 메모<\/h3><ul><li>우리 사업에 대응시키면: 우리는 \"프로를 대체하는 AI\"가 아니라 \"프로의 판단을 구조화해주는 초안 생성기\"다. 이 포지션이면 <a class=\"xref\" href=\"#\" data-note=\"티칭프로_커뮤니티_페인포인트_해외\">티칭프로_커뮤니티_페인포인트_해외<\/a>에서 확인된 '전문성 격하 거부감' 리스크도 함께 낮춘다.<\/li><li>다만 반대 방향 시사점도 있다: 필라테스는 <strong>최종 소비자(수강생)가 구독료를 낸다.<\/strong> 우리도 지불 주체를 프로가 아니라 수강생으로 두는 설계(프로가 발급하는 수강생용 리포트/앱)를 검토할 가치가 있다. 이건 <a class=\"xref\" href=\"#\" data-note=\"국내_레슨프로_시장현실_지불여력\">국내_레슨프로_시장현실_지불여력<\/a>의 지불여력 문제를 근본적으로 우회하는 유일한 경로일 수 있다.<\/li><li>confidence 확인필요: 실제 서비스 출시 여부, 구독가, 사용자 규모 전부 미확인 (보도자료 1건에만 의존).<\/li><\/ul>", "slug": "캐치필라테스_토마토시스템_AI체형분석_구독"}];
+const FIELDS = [["target_customer", "타겟 고객"], ["pricing", "가격"], ["core_offering", "핵심 제공가치"], ["strengths", "강점"], ["weaknesses", "약점"], ["differentiation_gap", "차별화 gap"]];
+const GENERATED = "2026-09-12 17:01";
+const CATS = ["전체", "경쟁사_유사서비스", "니즈검증", "인접산업"];
+
+let activeCat = "전체";
+let query = "";
+let onlyFlag = false;
+
+const esc = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+function badgeClass(conf) {
+  if (conf === "확인됨") return "ok";
+  if (conf === "확인필요") return "warn";
+  if (conf === "추정") return "guess";
+  return "plain";
+}
+
+function matches(n) {
+  if (activeCat !== "전체" && n.category !== activeCat) return false;
+  if (onlyFlag && n.confidence !== "확인필요") return false;
+  if (!query) return true;
+  const hay = [n.title, n.category, n.tags.join(" "), n.summary, n.core_offering,
+               n.target_customer, n.pricing, n.relevance_to_us, n.differentiation_gap,
+               n.strengths.join(" "), n.weaknesses.join(" "), n.judgement].join(" ").toLowerCase();
+  return hay.includes(query);
+}
+
+function cell(n, key) {
+  const v = n[key];
+  if (Array.isArray(v)) {
+    if (!v.length) return '<span class="cellmuted">—</span>';
+    return "<ul>" + v.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>";
+  }
+  return v ? esc(v) : '<span class="cellmuted">—</span>';
+}
+
+function render() {
+  const rows = NOTES.filter(matches);
+
+  // 통계
+  const byCat = {};
+  NOTES.forEach(n => { byCat[n.category] = (byCat[n.category] || 0) + 1; });
+  const flagged = NOTES.filter(n => n.confidence === "확인필요").length;
+  const statHtml = [
+    ['<div class="n">' + NOTES.length + '</div><div class="l">전체 노트</div>'],
+    ...CATS.slice(1).map(c => ['<div class="n">' + (byCat[c] || 0) + '</div><div class="l">' + esc(c) + '</div>']),
+    ['<div class="n">' + flagged + '</div><div class="l">확인필요</div>'],
+  ].map(x => '<div class="stat">' + x + '</div>').join("");
+  document.getElementById("stats").innerHTML = statHtml;
+
+  // 탭
+  document.getElementById("tabs").innerHTML = CATS.map(c => {
+    const cnt = c === "전체" ? NOTES.length : (byCat[c] || 0);
+    return '<button class="tab" role="tab" data-cat="' + esc(c) + '" aria-selected="' +
+      (c === activeCat) + '">' + esc(c) + ' <span class="cellmuted">' + cnt + '</span></button>';
+  }).join("");
+  document.querySelectorAll(".tab").forEach(b => {
+    b.onclick = () => { activeCat = b.dataset.cat; render(); };
+  });
+
+  // 표
+  const thead = document.querySelector("#cmp thead");
+  const tbody = document.querySelector("#cmp tbody");
+  thead.innerHTML = "<tr><th>사례</th><th>신뢰도</th>" +
+    FIELDS.map(f => "<th>" + esc(f[1]) + "</th>").join("") + "</tr>";
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="' + (FIELDS.length + 2) + '" class="empty">조건에 맞는 사례가 없습니다.</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(n => {
+      const link = '<button class="notelink" data-note="' + esc(n.slug) + '">' + esc(n.title) + "</button>";
+      return "<tr><td class=\"name\">" + link +
+        '<div class="cellmuted" style="font-size:11.5px;margin-top:3px;">' + esc(n.category) +
+        (n.source_type ? " · " + esc(n.source_type) : "") + "</div></td>" +
+        '<td><span class="badge ' + badgeClass(n.confidence) + '">' + esc(n.confidence) + "</span></td>" +
+        FIELDS.map(f => "<td>" + cell(n, f[0]) + "</td>").join("") + "</tr>";
+    }).join("");
+  }
+
+  // 카드
+  const cards = document.getElementById("cards");
+  if (!rows.length) {
+    cards.innerHTML = '<div class="empty">조건에 맞는 사례가 없습니다.</div>';
+  } else {
+    cards.innerHTML = rows.map(n => {
+      const tags = n.tags.slice(0, 6).map(t => '<span class="badge plain">' + esc(t) + "</span>").join("");
+      return '<article class="card' + (n.confidence === "확인필요" ? " flagged" : "") + '">' +
+        '<h3><button class="notelink" data-note="' + esc(n.slug) + '">' + esc(n.title) + "</button></h3>" +
+        '<div class="meta"><span class="badge ' + badgeClass(n.confidence) + '">' + esc(n.confidence) + "</span>" +
+        '<span class="badge plain">' + esc(n.category) + "</span>" +
+        (n.date_collected ? '<span class="badge plain">' + esc(n.date_collected) + "</span>" : "") + "</div>" +
+        (n.summary ? "<p>" + esc(n.summary) + "</p>" : "") +
+        (n.relevance_to_us ? "<dl><dt>우리 가설과의 관련</dt><dd>" + esc(n.relevance_to_us) + "</dd></dl>" : "") +
+        (n.differentiation_gap ? "<dl><dt>차별화 gap</dt><dd>" + esc(n.differentiation_gap) + "</dd></dl>" : "") +
+        (tags ? '<div class="meta" style="margin-top:10px">' + tags + "</div>" : "") +
+        '<div class="src">' + (n.source_url
+            ? '출처: <a href="' + esc(n.source_url) + '" target="_blank" rel="noopener">' + esc(n.source_url) + "</a>"
+            : '<span class="cellmuted">출처 URL 없음</span>') + "</div>" +
+        "</article>";
+    }).join("");
+  }
+
+  document.getElementById("foot").textContent =
+    "생성 시각 " + GENERATED + " · 표시 중 " + rows.length + " / 전체 " + NOTES.length +
+    "건 · 제목을 클릭하면 노트 전문을 볼 수 있습니다 · 노트를 추가한 뒤 build_dashboard.py 를 다시 실행하면 갱신됩니다.";
+}
+
+// ---------- 노트 상세뷰 ----------
+const overlay = document.getElementById("overlay");
+const sheet = document.getElementById("sheet");
+const bySlug = {};
+NOTES.forEach(n => { bySlug[n.slug] = n; });
+let lastFocus = null;
+
+function factRow(label, value) {
+  if (!value || (Array.isArray(value) && !value.length)) return "";
+  const body = Array.isArray(value)
+    ? "<ul>" + value.map(x => "<li>" + esc(x) + "</li>").join("") + "</ul>"
+    : esc(value);
+  return "<dt>" + esc(label) + "</dt><dd>" + body + "</dd>";
+}
+
+function openNote(slug) {
+  const n = bySlug[slug];
+  if (!n) return;
+  lastFocus = document.activeElement;
+
+  const facts = [
+    factRow("타겟 고객", n.target_customer),
+    factRow("가격", n.pricing),
+    factRow("핵심 제공가치", n.core_offering),
+    factRow("강점", n.strengths),
+    factRow("약점", n.weaknesses),
+    factRow("근거 자료", n.data_or_evidence_used),
+    factRow("우리 가설과의 관련", n.relevance_to_us),
+    factRow("차별화 gap", n.differentiation_gap),
+  ].join("");
+
+  sheet.innerHTML =
+    '<div class="sheet-top"><h2 id="sheetTitle">' + esc(n.title) + "</h2>" +
+    '<button class="close-btn" id="closeBtn" aria-label="닫기">&times;</button></div>' +
+    '<div class="meta"><span class="badge ' + badgeClass(n.confidence) + '">' + esc(n.confidence) + "</span>" +
+    '<span class="badge plain">' + esc(n.category) + "</span>" +
+    (n.source_type ? '<span class="badge plain">' + esc(n.source_type) + "</span>" : "") +
+    (n.date_collected ? '<span class="badge plain">' + esc(n.date_collected) + "</span>" : "") +
+    (n.tags || []).map(t => '<span class="badge plain">' + esc(t) + "</span>").join("") + "</div>" +
+    (n.source_url
+      ? '<p style="font-size:12.5px;margin:10px 0 0">출처: <a href="' + esc(n.source_url) +
+        '" target="_blank" rel="noopener" style="color:var(--accent);word-break:break-all">' + esc(n.source_url) + "</a></p>"
+      : '<p style="font-size:12.5px;margin:10px 0 0" class="cellmuted">출처 URL 없음</p>') +
+    (facts ? '<div class="facts"><dl>' + facts + "</dl></div>" : "") +
+    '<div class="prose">' + n.body_html + "</div>" +
+    '<p style="font-size:12px;margin-top:24px" class="cellmuted">원본 파일: ' + esc(n.relpath) + "</p>";
+
+  overlay.hidden = false;
+  document.body.style.overflow = "hidden";
+  overlay.scrollTop = 0;
+  document.getElementById("closeBtn").onclick = closeNote;
+  document.getElementById("closeBtn").focus();
+}
+
+function closeNote() {
+  overlay.hidden = true;
+  document.body.style.overflow = "";
+  if (lastFocus) lastFocus.focus();
+}
+
+// 노트 제목 클릭, 그리고 본문 안의 [[위키링크]] 클릭 모두 처리
+document.addEventListener("click", e => {
+  const trigger = e.target.closest("[data-note]");
+  if (trigger) {
+    e.preventDefault();
+    const slug = trigger.dataset.note;
+    if (bySlug[slug]) {
+      openNote(slug);
+    } else {
+      alert("연결된 노트를 찾을 수 없습니다: " + slug);
+    }
+    return;
+  }
+  if (e.target === overlay) closeNote();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !overlay.hidden) closeNote();
+});
+
+document.getElementById("search").addEventListener("input", e => {
+  query = e.target.value.trim().toLowerCase();
+  render();
+});
+document.getElementById("onlyFlag").addEventListener("change", e => {
+  onlyFlag = e.target.checked;
+  render();
+});
+
+const themes = ["auto", "light", "dark"];
+const labels = { auto: "자동", light: "라이트", dark: "다크" };
+const btn = document.getElementById("themeBtn");
+btn.addEventListener("click", () => {
+  const cur = document.documentElement.dataset.theme || "auto";
+  const next = themes[(themes.indexOf(cur) + 1) % themes.length];
+  document.documentElement.dataset.theme = next;
+  btn.textContent = "테마: " + labels[next];
+});
+
+render();
+</script>
+</body>
+</html>
