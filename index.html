@@ -117,10 +117,14 @@
   .steps li {
     counter-increment: step;
     display: grid;
-    grid-template-columns: 2.4em 1fr;
+    grid-template-columns: 2.4em minmax(0, 1fr);
     align-items: baseline;
     padding-block: 8px;
   }
+
+  /* 번호 뒤의 글은 반드시 한 덩어리로 둘 것.
+     낱개 요소로 두면 두 번째 요소가 번호 칸으로 흘러내린다. */
+  .steps .step-text { grid-column: 2; }
 
   .steps li::before {
     content: counter(step, decimal-leading-zero);
@@ -131,7 +135,7 @@
   }
 
   .steps b { font-weight: 600; }
-  .steps span { color: var(--muted); }
+  .steps .step-desc { color: var(--muted); }
 
   /* ── 입력 ─────────────────────────────── */
   .field-head {
@@ -278,6 +282,103 @@
 
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+  /* ── 회의 정보 ─────────────────────────── */
+  .meta-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .meta-field { display: flex; flex-direction: column; gap: 6px; }
+
+  .meta-field input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 0.92rem;
+  }
+
+  .meta-field input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+
+  .meta-field input::placeholder { color: var(--muted); opacity: 0.75; }
+
+  .autofill-note {
+    grid-column: 1 / -1;
+    margin: -4px 0 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  /* ── 개요 카드 ─────────────────────────── */
+  .overview {
+    display: grid;
+    gap: 12px;
+    padding-block: 18px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .overview-title {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.35;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .overview-rows { display: grid; gap: 8px; }
+
+  .overview-row {
+    display: grid;
+    grid-template-columns: 4.5em minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+  }
+
+  .overview-row dt {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .overview-row dd { margin: 0; }
+
+  .people { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .person {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    background: var(--accent-soft);
+    color: var(--ink);
+    border-radius: 999px;
+    font-size: 0.85rem;
+  }
+
+  .person .load {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .owner {
+    font-weight: 600;
+    color: var(--accent);
+  }
+
   /* ── 결과 ─────────────────────────────── */
   .result-shell {
     background: var(--surface);
@@ -416,12 +517,28 @@
   </header>
 
   <ol class="steps">
-    <li><b>붙여넣기</b><span>&nbsp;— 회의록, 메모, 대화 기록 그대로</span></li>
-    <li><b>정리하기</b><span>&nbsp;— 버튼 한 번</span></li>
-    <li><b>공유하기</b><span>&nbsp;— 아래 결과를 확인하고 팀에 전달</span></li>
+    <li><span class="step-text"><b>붙여넣기</b> <span class="step-desc">— 회의록, 메모, 대화 기록 그대로</span></span></li>
+    <li><span class="step-text"><b>정리하기</b> <span class="step-desc">— 버튼 한 번</span></span></li>
+    <li><span class="step-text"><b>공유하기</b> <span class="step-desc">— 아래 결과를 확인하고 팀에 전달</span></span></li>
   </ol>
 
   <section>
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label for="title-field">회의 이름</label>
+        <input type="text" id="title-field" placeholder="예: 3분기 마케팅 정기회의" />
+      </div>
+      <div class="meta-field">
+        <label for="date-field">날짜</label>
+        <input type="text" id="date-field" placeholder="예: 4월 3일" />
+      </div>
+      <div class="meta-field">
+        <label for="people-field">참석자</label>
+        <input type="text" id="people-field" placeholder="쉼표로 구분, 예: 김민수, 이서연" />
+      </div>
+      <p class="autofill-note">비워 두면 회의 내용에서 찾아 자동으로 채웁니다. 틀리면 직접 고치세요.</p>
+    </div>
+
     <div class="field-head">
       <label for="input">회의 내용</label>
       <span class="counter" id="counter">0자</span>
@@ -467,6 +584,9 @@
   var result = document.getElementById('result');
   var counter = document.getElementById('counter');
   var meta = document.getElementById('meta');
+  var titleField = document.getElementById('title-field');
+  var dateField = document.getElementById('date-field');
+  var peopleField = document.getElementById('people-field');
 
   var SAMPLE = [
     '3분기 마케팅 정기회의 / 참석: 김민수, 이서연, 박준호',
@@ -482,6 +602,10 @@
   var DECISION = ['결정', '합의', '확정', '승인', '채택', '하기로', '유지하기로', '진행하기로', '미루기로'];
   var TODO = ['해야', '준비', '공유', '전달', '확인', '작성', '정리', '검토', '요청', '까지', '담당'];
   var ISSUE = ['문제', '이슈', '우려', '지연', '리스크', '부족', '못 미', '미달', '느린', '이탈', '실패', '어려'];
+
+  // 사람 이름으로 볼 수 없는 말들
+  var NOT_NAME = ['참석', '참여', '배석', '회의', '안건', '일시', '장소', '결정', '논의',
+                  '다음', '기타', '정리', '요약', '목표', '내용', '보고'];
 
   function updateCounter() {
     counter.textContent = input.value.length.toLocaleString('ko-KR') + '자';
@@ -499,13 +623,74 @@
     return words.some(function (w) { return s.indexOf(w) !== -1; });
   }
 
-  function organize(text) {
+  // ── 회의 정보 자동 추출 ───────────────────────────────
+  function looksLikeName(n) {
+    return /^[가-힣]{2,4}$/.test(n) && NOT_NAME.indexOf(n) === -1;
+  }
+
+  function findPeople(text) {
+    var found = [];
+    function add(n) {
+      n = n.trim();
+      if (looksLikeName(n) && found.indexOf(n) === -1) found.push(n);
+    }
+
+    // 1) "참석: 김민수, 이서연, 박준호" 형태
+    var m = text.match(/(?:참석자|참석|참여자|참여|배석)\s*[:：\-]\s*([^\n]+)/);
+    if (m) m[1].split(/[,、·\/]|\s및\s|\s그리고\s/).forEach(add);
+
+    // 2) 줄머리 "이서연:" 형태 — 발언자나 담당자
+    text.split(/\n/).forEach(function (line) {
+      var mm = line.match(/^\s*[-•*·]?\s*([가-힣]{2,4})\s*[:：]/);
+      if (mm) add(mm[1]);
+    });
+
+    return found;
+  }
+
+  function findDate(text) {
+    var lines = text.split(/\n/);
+    for (var i = 0; i < lines.length; i++) {
+      // "다음 회의는 4월 3일" 같은 줄은 이번 회의 날짜가 아니다
+      if (lines[i].indexOf('다음') !== -1) continue;
+      var m = lines[i].match(/\d{4}\s*[-.\/년]\s*\d{1,2}\s*[-.\/월]\s*\d{1,2}\s*일?/) ||
+              lines[i].match(/\d{1,2}\s*월\s*\d{1,2}\s*일/);
+      if (m) return m[0].trim();
+    }
+    return '';
+  }
+
+  function findTitle(text) {
+    var first = (text.split(/\n/)[0] || '').split('/')[0]
+      // 제목에 날짜가 붙어 있으면 떼어낸다 (날짜는 따로 보여준다)
+      .replace(/\d{4}\s*[-.\/년]\s*\d{1,2}\s*[-.\/월]\s*\d{1,2}\s*일?/, '')
+      .replace(/\d{1,2}\s*월\s*\d{1,2}\s*일/, '')
+      .replace(/[\s\-–—,]+$/, '')
+      .trim();
+    if (!first) return '';
+    if (first.length > 40) return '';
+    if (/회의|미팅|리뷰|스크럼|워크숍|킥오프/.test(first)) return first;
+    return '';
+  }
+
+  // 할 일에서 담당자를 떼어낸다
+  function splitOwner(sentence, people) {
+    var m = sentence.match(/^([가-힣]{2,4})\s*[:：]\s*(.+)$/);
+    if (m && looksLikeName(m[1])) return { owner: m[1], text: m[2] };
+
+    for (var i = 0; i < people.length; i++) {
+      if (sentence.indexOf(people[i]) !== -1) return { owner: people[i], text: sentence };
+    }
+    return { owner: '', text: sentence };
+  }
+
+  function organize(text, people) {
     var sentences = splitSentences(text);
     var out = { decisions: [], todos: [], issues: [], rest: [], total: sentences.length };
 
     sentences.forEach(function (s) {
       if (hasAny(s, DECISION)) out.decisions.push(s);
-      else if (hasAny(s, TODO)) out.todos.push(s);
+      else if (hasAny(s, TODO)) out.todos.push(splitOwner(s, people));
       else if (hasAny(s, ISSUE)) out.issues.push(s);
       else out.rest.push(s);
     });
@@ -515,22 +700,61 @@
   }
 
   function esc(s) {
-    return s.replace(/[&<>"']/g, function (c) {
+    return String(s).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  function group(kind, title, items) {
-    if (!items.length) return '';
-    return '<div class="group" data-kind="' + kind + '">' +
-             '<div class="group-head"><h3>' + title + '</h3>' +
-             '<span class="count">' + items.length + '</span></div><ul>' +
-             items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
-           '</ul></div>';
+  // ── 그리기 ────────────────────────────────────────────
+  function overview(info, data) {
+    var rows = '';
+
+    if (info.date) {
+      rows += '<div class="overview-row"><dt>날짜</dt><dd>' + esc(info.date) + '</dd></div>';
+    }
+
+    if (info.people.length) {
+      var chips = info.people.map(function (name) {
+        var load = data.todos.filter(function (t) { return t.owner === name; }).length;
+        return '<span class="person">' + esc(name) +
+               (load ? '<span class="load">할 일 ' + load + '</span>' : '') +
+               '</span>';
+      }).join('');
+      rows += '<div class="overview-row"><dt>참석자</dt><dd><div class="people">' + chips + '</div></dd></div>';
+    }
+
+    var counts = [];
+    if (data.decisions.length) counts.push('결정 ' + data.decisions.length);
+    if (data.todos.length) counts.push('할 일 ' + data.todos.length);
+    if (data.issues.length) counts.push('문제 ' + data.issues.length);
+    if (counts.length) {
+      rows += '<div class="overview-row"><dt>한눈에</dt><dd>' + counts.join(' · ') + '</dd></div>';
+    }
+
+    if (!info.title && !rows) return '';
+
+    return '<div class="overview">' +
+           (info.title ? '<h3 class="overview-title">' + esc(info.title) + '</h3>' : '') +
+           (rows ? '<dl class="overview-rows">' + rows + '</dl>' : '') +
+           '</div>';
   }
 
-  function render(data, isSample) {
-    var html = group('summary', '핵심 요약', data.summary) +
+  function group(kind, title, items) {
+    if (!items.length) return '';
+    var lis = items.map(function (item) {
+      if (typeof item === 'string') return '<li>' + esc(item) + '</li>';
+      return '<li>' + (item.owner ? '<span class="owner">' + esc(item.owner) + '</span> ' : '') +
+             esc(item.text) + '</li>';
+    }).join('');
+    return '<div class="group" data-kind="' + kind + '">' +
+             '<div class="group-head"><h3>' + title + '</h3>' +
+             '<span class="count">' + items.length + '</span></div>' +
+             '<ul>' + lis + '</ul></div>';
+  }
+
+  function render(info, data, isSample) {
+    var html = overview(info, data) +
+               group('summary', '핵심 요약', data.summary) +
                group('decision', '결정 사항', data.decisions.slice(0, 10)) +
                group('todo', '할 일', data.todos.slice(0, 10)) +
                group('issue', '논의된 문제', data.issues.slice(0, 10));
@@ -551,7 +775,21 @@
     meta.textContent = '';
   }
 
-  document.getElementById('run').addEventListener('click', function () {
+  // 빈 칸만 자동으로 채운다. 사람이 적은 값은 건드리지 않는다.
+  function collectInfo(text) {
+    if (!titleField.value.trim()) titleField.value = findTitle(text);
+    if (!dateField.value.trim()) dateField.value = findDate(text);
+    if (!peopleField.value.trim()) peopleField.value = findPeople(text).join(', ');
+
+    return {
+      title: titleField.value.trim(),
+      date: dateField.value.trim(),
+      people: peopleField.value.split(',').map(function (n) { return n.trim(); })
+                         .filter(function (n) { return n.length > 0; })
+    };
+  }
+
+  function run(isSample) {
     var text = input.value.trim();
     if (!text) {
       result.innerHTML = '<p class="msg">먼저 회의 내용을 입력해 주세요.</p>';
@@ -559,17 +797,26 @@
       input.focus();
       return;
     }
-    render(organize(text), text === SAMPLE);
-  });
+    var info = collectInfo(text);
+    render(info, organize(text, info.people), isSample);
+  }
+
+  document.getElementById('run').addEventListener('click', function () { run(false); });
 
   document.getElementById('sample').addEventListener('click', function () {
     input.value = SAMPLE;
+    titleField.value = '';
+    dateField.value = '';
+    peopleField.value = '';
     updateCounter();
-    render(organize(SAMPLE), true);
+    run(true);
   });
 
   document.getElementById('clear').addEventListener('click', function () {
     input.value = '';
+    titleField.value = '';
+    dateField.value = '';
+    peopleField.value = '';
     updateCounter();
     reset();
     input.focus();
@@ -580,7 +827,7 @@
   // 처음 열었을 때 실제로 동작하는 모습을 보여준다
   input.value = SAMPLE;
   updateCounter();
-  render(organize(SAMPLE), true);
+  run(true);
 })();
 </script>
 </body>
