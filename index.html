@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>회의노트 정리</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root {
+    --bg: #f1f3f0;
+    --surface: #fdfdfc;
+    --sunken: #e9ece7;
+    --line: #d9ddd6;
+    --line-soft: #e6e9e3;
+    --ink: #191d19;
+    --muted: #636a62;
+    --accent: #34614a;
+    --accent-ink: #ffffff;
+    --accent-soft: #e0eae2;
+    --warn: #8a5a1f;
+    --serif: "Gowun Batang", Georgia, "Apple SD Gothic Neo", serif;
+    --sans: "IBM Plex Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #131613;
+      --surface: #1b1f1b;
+      --sunken: #191d19;
+      --line: #2f352f;
+      --line-soft: #262b26;
+      --ink: #e7eae5;
+      --muted: #9aa298;
+      --accent: #8cbb9d;
+      --accent-ink: #10150f;
+      --accent-soft: #232e26;
+      --warn: #d8a765;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #131613;
+    --surface: #1b1f1b;
+    --sunken: #191d19;
+    --line: #2f352f;
+    --line-soft: #262b26;
+    --ink: #e7eae5;
+    --muted: #9aa298;
+    --accent: #8cbb9d;
+    --accent-ink: #10150f;
+    --accent-soft: #232e26;
+    --warn: #d8a765;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.75;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-block: 44px 72px;
+    padding-inline: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  /* ── 머리말 ───────────────────────────── */
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: clamp(1.9rem, 6vw, 2.6rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 10px;
+  }
+
+  .lead {
+    margin: 0;
+    color: var(--muted);
+    max-width: 34em;
+  }
+
+  /* ── 사용 순서 ─────────────────────────── */
+  .steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+    counter-reset: step;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding-block: 4px;
+  }
+
+  .steps li {
+    counter-increment: step;
+    display: grid;
+    grid-template-columns: 2.4em 1fr;
+    align-items: baseline;
+    padding-block: 8px;
+  }
+
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+  }
+
+  .steps b { font-weight: 600; }
+  .steps span { color: var(--muted); }
+
+  /* ── 입력 ─────────────────────────────── */
+  .field-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .counter {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hint {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    max-width: 36em;
+  }
+
+  .example {
+    background: var(--sunken);
+    border: 1px solid var(--line-soft);
+    border-radius: 4px;
+    margin-bottom: 12px;
+  }
+
+  .example summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .example summary::-webkit-details-marker { display: none; }
+
+  .example summary::before {
+    content: "+";
+    color: var(--accent);
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+
+  .example[open] summary::before { content: "\2212"; }
+
+  .example summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    border-radius: 4px;
+  }
+
+  .example-body {
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .example-body p {
+    margin: 12px 0 10px;
+    color: var(--muted);
+    font-size: 0.83rem;
+  }
+
+  .example-body pre {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    line-height: 1.75;
+    color: var(--ink);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 230px;
+    padding: 16px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    resize: vertical;
+  }
+
+  textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  button {
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 12px 22px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+
+  .primary { background: var(--accent); color: var(--accent-ink); }
+  .primary:hover { filter: brightness(1.08); }
+
+  .ghost {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--line);
+  }
+  .ghost:hover { color: var(--ink); border-color: var(--muted); }
+
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ── 결과 ─────────────────────────────── */
+  .result-shell {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 22px 22px;
+  }
+
+  .result-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-block: 16px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  .result-head h2 {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .group { padding-block: 18px; border-bottom: 1px solid var(--line-soft); }
+  .group:last-child { border-bottom: 0; padding-bottom: 4px; }
+
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .group h3 {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .count {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .group ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+
+  .group li {
+    padding-left: 16px;
+    position: relative;
+    overflow-wrap: anywhere;
+  }
+
+  .group li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 6px;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  .group[data-kind="decision"] li::before { background: var(--accent); width: 8px; height: 2px; }
+  .group[data-kind="issue"] li::before { background: var(--warn); }
+
+  .group[data-kind="todo"] li {
+    padding-left: 22px;
+  }
+  .group[data-kind="todo"] li::before {
+    content: "";
+    top: 0.45em;
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid var(--accent);
+    border-radius: 2px;
+    background: transparent;
+  }
+
+  .msg { color: var(--muted); margin: 18px 0; }
+
+  .sample-flag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+
+  .footnote {
+    color: var(--muted);
+    font-size: 0.83rem;
+    line-height: 1.7;
+    margin: 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 460px) {
+    .wrap { padding-block: 32px 52px; padding-inline: 16px; gap: 28px; }
+    .result-shell { padding-inline: 16px; }
+    .actions button { flex: 1 1 auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">회의 기록 도우미</p>
+    <h1>회의노트 정리</h1>
+    <p class="lead">받아 적기만 한 회의 기록을 붙여넣으면 결정 사항, 할 일, 남은 문제로 나눠 드립니다. 회의가 끝나고 5분 안에 팀에 공유할 수 있게요.</p>
+  </header>
+
+  <ol class="steps">
+    <li><b>붙여넣기</b><span>&nbsp;— 회의록, 메모, 대화 기록 그대로</span></li>
+    <li><b>정리하기</b><span>&nbsp;— 버튼 한 번</span></li>
+    <li><b>공유하기</b><span>&nbsp;— 아래 결과를 확인하고 팀에 전달</span></li>
+  </ol>
+
+  <section>
+    <div class="field-head">
+      <label for="input">회의 내용</label>
+      <span class="counter" id="counter">0자</span>
+    </div>
+    <p class="hint">회의 중 적어 둔 메모를 형식 없이 그대로 붙여넣으세요. 문장이 다듬어지지 않아도, 순서가 뒤섞여도 괜찮습니다. 한 줄에 한 가지 내용씩 적혀 있으면 가장 잘 정리됩니다.</p>
+
+    <details class="example" open>
+      <summary>이런 식으로 붙여넣으면 됩니다</summary>
+      <div class="example-body">
+        <p>날짜와 참석자, 오간 이야기, 정해진 것, 맡기로 한 일을 적힌 그대로 넣으면 됩니다.</p>
+        <pre>3분기 마케팅 정기회의 / 참석: 김민수, 이서연, 박준호
+전환율 1.8%로 목표에 못 미침
+신규 채널 예산은 현행 유지하기로 결정
+이서연: 화요일까지 경쟁사 분석 공유</pre>
+      </div>
+    </details>
+
+    <textarea id="input" spellcheck="false" placeholder="여기에 회의 내용을 붙여넣으세요. 위 '예시 넣기'를 눌러 먼저 살펴봐도 좋습니다."></textarea>
+    <div class="actions">
+      <button type="button" class="primary" id="run">회의 내용 정리하기</button>
+      <button type="button" class="ghost" id="sample">예시 넣기</button>
+      <button type="button" class="ghost" id="clear">지우기</button>
+    </div>
+  </section>
+
+  <section class="result-shell" aria-live="polite">
+    <div class="result-head">
+      <h2>정리 결과</h2>
+      <span class="meta" id="meta"></span>
+    </div>
+    <div id="result"></div>
+  </section>
+
+  <p class="footnote">
+    데모 화면입니다. 정리는 브라우저 안에서 문장 신호어를 기준으로 이루어지며, 입력한 내용은 어디에도 전송되지 않습니다.
+  </p>
+
+</div>
+
+<script>
+(function () {
+  var input = document.getElementById('input');
+  var result = document.getElementById('result');
+  var counter = document.getElementById('counter');
+  var meta = document.getElementById('meta');
+
+  var SAMPLE = [
+    '3분기 마케팅 정기회의 / 참석: 김민수, 이서연, 박준호',
+    '지난 분기 캠페인 전환율은 1.8%로 목표 3%에 못 미쳤습니다.',
+    '신규 채널 테스트 예산은 현행 수준으로 유지하기로 결정했습니다.',
+    '랜딩 페이지 로딩이 느린 것이 이탈의 주요 원인으로 보인다는 의견이 있었습니다.',
+    '이서연: 다음 주 화요일까지 경쟁사 3곳 분석 자료 정리해서 공유',
+    '박준호: 랜딩 페이지 속도 개선안 검토 후 개발팀에 전달',
+    '리브랜딩 논의는 4분기로 미루기로 합의했습니다.',
+    '다음 회의는 4월 3일 오후 2시.'
+  ].join('\n');
+
+  var DECISION = ['결정', '합의', '확정', '승인', '채택', '하기로', '유지하기로', '진행하기로', '미루기로'];
+  var TODO = ['해야', '준비', '공유', '전달', '확인', '작성', '정리', '검토', '요청', '까지', '담당'];
+  var ISSUE = ['문제', '이슈', '우려', '지연', '리스크', '부족', '못 미', '미달', '느린', '이탈', '실패', '어려'];
+
+  function updateCounter() {
+    counter.textContent = input.value.length.toLocaleString('ko-KR') + '자';
+  }
+
+  function splitSentences(text) {
+    return text
+      .split(/\n+/)
+      .reduce(function (acc, line) { return acc.concat(line.split(/(?<=[.!?])\s+/)); }, [])
+      .map(function (s) { return s.replace(/^[\s\-•*·>]+|^\d+[.)]\s*/g, '').trim(); })
+      .filter(function (s) { return s.length > 1; });
+  }
+
+  function hasAny(s, words) {
+    return words.some(function (w) { return s.indexOf(w) !== -1; });
+  }
+
+  function organize(text) {
+    var sentences = splitSentences(text);
+    var out = { decisions: [], todos: [], issues: [], rest: [], total: sentences.length };
+
+    sentences.forEach(function (s) {
+      if (hasAny(s, DECISION)) out.decisions.push(s);
+      else if (hasAny(s, TODO)) out.todos.push(s);
+      else if (hasAny(s, ISSUE)) out.issues.push(s);
+      else out.rest.push(s);
+    });
+
+    out.summary = (out.rest.length ? out.rest : sentences).slice(0, 3);
+    return out;
+  }
+
+  function esc(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function group(kind, title, items) {
+    if (!items.length) return '';
+    return '<div class="group" data-kind="' + kind + '">' +
+             '<div class="group-head"><h3>' + title + '</h3>' +
+             '<span class="count">' + items.length + '</span></div><ul>' +
+             items.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') +
+           '</ul></div>';
+  }
+
+  function render(data, isSample) {
+    var html = group('summary', '핵심 요약', data.summary) +
+               group('decision', '결정 사항', data.decisions.slice(0, 10)) +
+               group('todo', '할 일', data.todos.slice(0, 10)) +
+               group('issue', '논의된 문제', data.issues.slice(0, 10));
+
+    if (!html) {
+      result.innerHTML = '<p class="msg">정리할 만한 문장을 찾지 못했습니다. 조금 더 자세한 내용을 넣어 주세요.</p>';
+      meta.textContent = '';
+      return;
+    }
+
+    result.innerHTML = html;
+    meta.innerHTML = (isSample ? '<span class="sample-flag">예시</span> ' : '') +
+                     '문장 ' + data.total + '개 정리함';
+  }
+
+  function reset() {
+    result.innerHTML = '<p class="msg">위에 회의 내용을 붙여넣고 정리하기를 눌러 주세요.</p>';
+    meta.textContent = '';
+  }
+
+  document.getElementById('run').addEventListener('click', function () {
+    var text = input.value.trim();
+    if (!text) {
+      result.innerHTML = '<p class="msg">먼저 회의 내용을 입력해 주세요.</p>';
+      meta.textContent = '';
+      input.focus();
+      return;
+    }
+    render(organize(text), text === SAMPLE);
+  });
+
+  document.getElementById('sample').addEventListener('click', function () {
+    input.value = SAMPLE;
+    updateCounter();
+    render(organize(SAMPLE), true);
+  });
+
+  document.getElementById('clear').addEventListener('click', function () {
+    input.value = '';
+    updateCounter();
+    reset();
+    input.focus();
+  });
+
+  input.addEventListener('input', updateCounter);
+
+  // 처음 열었을 때 실제로 동작하는 모습을 보여준다
+  input.value = SAMPLE;
+  updateCounter();
+  render(organize(SAMPLE), true);
+})();
+</script>
+</body>
+</html>
